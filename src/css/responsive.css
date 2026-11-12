@@ -1,0 +1,252 @@
+@media (min-width: 1201px) {
+  .app.is-inspector-closed {
+    grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
+  }
+
+  .app.is-inspector-closed .inspector {
+    display: none;
+  }
+}
+
+@media (max-width: 1200px) {
+  .app {
+    grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
+  }
+
+  .inspector {
+    position: fixed;
+    top: 0;
+    right: 0;
+    z-index: 29;
+    width: min(23rem, 92vw);
+    transform: translateX(100%);
+    box-shadow: var(--shadow-lg);
+    transition: transform var(--speed) var(--ease);
+  }
+
+  .app.is-inspector-drawer-open .inspector {
+    transform: translateX(0);
+  }
+}
+
+@media (max-width: 1024px) {
+  .app {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 32;
+    width: min(19rem, 86vw);
+    transform: translateX(-100%);
+    box-shadow: var(--shadow-lg);
+    transition: transform var(--speed) var(--ease);
+  }
+
+  .app.is-sidebar-open .sidebar {
+    transform: translateX(0);
+  }
+
+  .topbar__menu {
+    display: grid;
+  }
+}
+
+@media (max-width: 900px) {
+  .topbar {
+    flex-wrap: wrap;
+    gap: 0.75rem 1rem;
+    padding: 1rem 1.25rem;
+  }
+
+  .topbar__heading {
+    flex: 1 1 12rem;
+  }
+
+  .topbar__actions {
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+    margin-left: 0;
+  }
+
+  .search {
+    flex: 1 1 13rem;
+    width: auto;
+  }
+
+  .main {
+    padding: 1.25rem 1.25rem 5rem;
+  }
+}
+
+@media (max-width: 720px) {
+  .topbar__title {
+    font-size: 1.55rem;
+  }
+
+  .sort {
+    flex: 1 1 auto;
+  }
+
+  .sort select {
+    width: 100%;
+  }
+
+  .topbar__actions .btn {
+    flex: 1 1 auto;
+  }
+
+  .toolbar {
+    gap: 0.9rem;
+  }
+
+  .toolbar__end {
+    width: 100%;
+    margin-left: 0;
+    justify-content: space-between;
+  }
+
+  .chips {
+    flex-wrap: nowrap;
+    width: 100%;
+    padding-bottom: 0.2rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .chips::-webkit-scrollbar {
+    display: none;
+  }
+
+  .segmented {
+    width: 100%;
+  }
+
+  .segmented__item {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .gallery {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .bulk-slot {
+    width: calc(100vw - 2rem);
+  }
+
+  .bulk {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 0.5rem;
+    border-radius: var(--radius-lg);
+  }
+
+  .bulk .bulk__count {
+    width: 100%;
+    padding: 0.15rem 0;
+    text-align: center;
+  }
+
+  .bulk .bulk__divider {
+    display: none;
+  }
+
+  .toast-region {
+    bottom: 6rem;
+  }
+
+  .lightbox .lightbox__inner {
+    gap: 0.5rem;
+    padding: 0.75rem;
+  }
+
+  .lightbox .lightbox__title {
+    font-size: 1rem;
+  }
+
+  .lightbox .lightbox__nav {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+
+  .lightbox .lightbox__nav.lightbox__nav--prev {
+    left: 0.1rem;
+  }
+
+  .lightbox .lightbox__nav.lightbox__nav--next {
+    right: 0.1rem;
+  }
+
+  .lightbox .lightbox__foot {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.55rem;
+  }
+
+  .lightbox .lightbox__filmstrip {
+    display: none;
+  }
+
+  .dialog {
+    width: calc(100vw - 1.25rem);
+    max-height: calc(100dvh - 1.25rem);
+  }
+
+  .dialog .dialog__head,
+  .dialog .dialog__body,
+  .dialog .dialog__foot {
+    padding-right: 1rem;
+    padding-left: 1rem;
+  }
+
+  .field.field--row {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .inspector {
+    width: 100%;
+  }
+
+  .topbar__actions .btn--ghost .btn__label {
+    display: none;
+  }
+
+  .topbar__actions .btn--ghost {
+    padding: 0 0.7rem;
+  }
+
+  .gallery-empty {
+    padding: 3rem 0.5rem;
+  }
+
+  .palette__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .export__preview {
+    padding: 0.75rem;
+  }
+
+  .sheet__cover {
+    min-height: 24rem;
+    padding: 1.5rem;
+  }
+
+  .sheet__page {
+    padding: 1.25rem;
+  }
+}
+
+@media (hover: none) {
+  .card .card__select,
+  .card .card__fav {
+    opacity: 1;
+    transform: none;
+  }
+}

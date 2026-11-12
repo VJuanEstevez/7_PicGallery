@@ -1,0 +1,211 @@
+
+.lightbox {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: var(--ink);
+  color: var(--paper);
+  &::backdrop {
+    background: var(--ink);
+  }
+  .lightbox__inner {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
+    gap: 0.75rem;
+    height: 100%;
+    padding: 1rem 1.5rem 1.1rem;
+  }
+  .lightbox__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    min-height: 2.75rem;
+  }
+  .lightbox__heading {
+    display: flex;
+    align-items: baseline;
+    gap: 0.8rem;
+    min-width: 0;
+  }
+  .lightbox__counter {
+    flex: none;
+    font-size: 0.62rem;
+    letter-spacing: 0.06em;
+    color: #8e9299;
+  }
+  .lightbox__title {
+    overflow: hidden;
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+    font-weight: 500;
+    letter-spacing: -0.03em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .lightbox__tools {
+    display: flex;
+    gap: 0.4rem;
+  }
+  .lightbox__tool {
+    display: grid;
+    place-items: center;
+    width: 2.45rem;
+    height: 2.45rem;
+    padding: 0;
+    border: 1px solid var(--ink-line);
+    border-radius: 50%;
+    background: rgb(255 255 255 / 0.03);
+    color: #b9bcc2;
+    transition:
+      background var(--speed) var(--ease),
+      color var(--speed) var(--ease),
+      border-color var(--speed) var(--ease);
+    .icon {
+      width: 1.05rem;
+      height: 1.05rem;
+    }
+    &:hover {
+      border-color: #3b3f45;
+      background: rgb(255 255 255 / 0.08);
+      color: #ffffff;
+    }
+    &.is-fav {
+      color: var(--marigold);
+      .icon {
+        fill: var(--marigold);
+        stroke: var(--marigold);
+      }
+    }
+  }
+  .lightbox__stage {
+    position: relative;
+    display: grid;
+    place-items: center;
+    min-height: 0;
+    touch-action: pan-y;
+  }
+  .lightbox__img {
+    max-width: 100%;
+    max-height: 100%;
+    border-radius: 0.35rem;
+    object-fit: contain;
+    box-shadow: 0 24px 70px rgb(0 0 0 / 0.38);
+    user-select: none;
+    -webkit-user-drag: none;
+    transition: opacity 180ms var(--ease);
+    &.is-loading {
+      opacity: 0;
+    }
+  }
+  .lightbox__nav {
+    position: absolute;
+    top: 50%;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    padding: 0;
+    border: 1px solid rgb(255 255 255 / 0.16);
+    border-radius: 50%;
+    background: rgb(255 255 255 / 0.07);
+    color: #ffffff;
+    transform: translateY(-50%);
+    backdrop-filter: blur(10px);
+    transition:
+      background var(--speed) var(--ease),
+      border-color var(--speed) var(--ease);
+    .icon {
+      width: 1.3rem;
+      height: 1.3rem;
+    }
+    &:hover {
+      border-color: rgb(255 255 255 / 0.35);
+      background: rgb(255 255 255 / 0.14);
+    }
+    &.lightbox__nav--prev {
+      left: 0.4rem;
+    }
+    &.lightbox__nav--next {
+      right: 0.4rem;
+    }
+  }
+  .lightbox__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.6rem 0.85rem;
+    border: 1px solid var(--ink-line);
+    border-radius: var(--radius-sm);
+    background: var(--ink-soft);
+  }
+  .lightbox__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 1rem;
+    min-width: 0;
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    color: #a9adb4;
+    span {
+      white-space: nowrap;
+    }
+  }
+  .lightbox__palette {
+    display: flex;
+    gap: 0.3rem;
+    flex: none;
+  }
+  .lightbox__swatch {
+    width: 1.45rem;
+    height: 1.45rem;
+    padding: 0;
+    border: 1px solid rgb(255 255 255 / 0.16);
+    border-radius: 0.28rem;
+    background: var(--hex);
+    transition: transform var(--speed) var(--ease);
+    &:hover {
+      transform: translateY(-2px);
+    }
+  }
+  .lightbox__filmstrip {
+    display: flex;
+    gap: 0.4rem;
+    padding: 0.15rem 0 0.1rem;
+    overflow-x: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--ink-line) transparent;
+  }
+  .lightbox__thumb {
+    width: 4.4rem;
+    height: 3.1rem;
+    flex: none;
+    padding: 0;
+    overflow: hidden;
+    border: 2px solid transparent;
+    border-radius: 0.35rem;
+    background: #24272b;
+    opacity: 0.52;
+    transition:
+      opacity var(--speed) var(--ease),
+      border-color var(--speed) var(--ease);
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    &:hover {
+      opacity: 0.85;
+    }
+    &.is-active {
+      border-color: #8f98ff;
+      opacity: 1;
+    }
+  }
+}
