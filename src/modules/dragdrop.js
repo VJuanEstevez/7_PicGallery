@@ -64,8 +64,14 @@ export function initDragDrop() {
     clearDropClasses()
 
     const bounds = card.getBoundingClientRect()
-    const position =
-      event.clientX < bounds.left + bounds.width / 2 ? 'before' : 'after'
+    const vertical = card.classList.contains('card--list')
+    const position = vertical
+      ? event.clientY < bounds.top + bounds.height / 2
+        ? 'before'
+        : 'after'
+      : event.clientX < bounds.left + bounds.width / 2
+        ? 'before'
+        : 'after'
 
     card.classList.add(position === 'before' ? 'drop-before' : 'drop-after')
     card.dataset.dropPosition = position

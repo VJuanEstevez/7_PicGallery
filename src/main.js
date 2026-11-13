@@ -3,6 +3,11 @@ import {
   clearSelection,
   closeOverlays,
   createFolder,
+  deleteAllImages,
+  deleteFolder,
+  deleteImage,
+  deleteImages,
+  getFolder,
   getSelectedImages,
   getState,
   getVisibleImages,
@@ -14,21 +19,25 @@ import {
   setInspectorOpen,
   setPalettes,
   setQuery,
+  setSidebarCollapsed,
   setSidebarOpen,
   setSort,
+  setView,
   subscribe,
   toggleColor,
   toggleFavorite,
   toggleFormat,
-  toggleSelection
+  toggleSelection,
+  toggleTag
 } from './modules/store.js'
 
 import { renderSidebar } from './modules/ui/sidebar.js'
 import { getTopbarSubtitle, renderTopbar } from './modules/ui/topbar.js'
-import { renderToolbar } from './modules/ui/toolbar.js'
+import { renderToolbar, updateToolbarView } from './modules/ui/toolbar.js'
 import {
   renderGallery,
   updateActiveUI,
+  updateGalleryLayout,
   updatePaletteUI,
   updateSelectionUI
 } from './modules/ui/gallery.js'
@@ -38,10 +47,12 @@ import { renderBulkBar } from './modules/ui/bulk.js'
 import { initDragDrop } from './modules/dragdrop.js'
 import { initUpload, openUploadDialog, pickFiles } from './modules/upload.js'
 import { openMoveDialog } from './modules/move.js'
+import { openRenameDialog } from './modules/rename.js'
 import {
   closeLightbox,
   goToLightbox,
   handleLightboxFavorite,
+  isLightboxOpen,
   navigateLightbox,
   openLightbox,
   syncLightbox
@@ -50,6 +61,7 @@ import { initExport, openExportDialog, printPresentation } from './modules/expor
 import { extractPaletteFromSource } from './modules/palette.js'
 import { toast } from './modules/toast.js'
 import { copyText, downloadImage } from './modules/utils.js'
+import { confirmAction } from './modules/confirm.js'
 
 const app = document.getElementById('app')
 const sidebar = document.getElementById('sidebar')
@@ -101,6 +113,7 @@ function applyUiState(state) {
   const mobile = window.matchMedia('(max-width: 1024px)').matches
 
   app.classList.toggle('is-sidebar-open', state.sidebarOpen)
+  app.classList.toggle('is-sidebar-collapsed', !mobile && state.sidebarCollapsed)
   app.classList.toggle('is-inspector-closed', !state.inspectorOpen)
   app.classList.toggle('is-inspector-drawer-open', state.inspectorDrawer)
 
@@ -112,10 +125,17 @@ function applyUiState(state) {
 
   const sidebarButton = topbar.querySelector('[data-action="toggle-sidebar"]')
   if (sidebarButton) {
-    sidebarButton.setAttribute('aria-expanded', String(state.sidebarOpen))
+    const expanded = mobile ? state.sidebarOpen : !state.sidebarCollapsed
+    sidebarButton.setAttribute('aria-expanded', String(expanded))
     sidebarButton.setAttribute(
       'aria-label',
-      state.sidebarOpen ? 'Cerrar menú de navegación' : 'Abrir menú de navegación'
+      mobile
+        ? expanded
+          ? 'Cerrar menú de navegación'
+          : 'Abrir menú de navegación'
+        : expanded
+          ? 'Ocultar menú de navegación'
+          : 'Mostrar menú de navegación'
     )
   }
 
@@ -143,7 +163,7 @@ function syncSearchValue(state) {
 }
 
 function syncSortValue(state) {
-  const select = topbar.querySelector('[data-sort-select]')
+  const select = document.querySelector('[data-sort-select]')
   if (select && select.value !== state.sort) select.value = state.sort
 }
 
@@ -154,8 +174,10 @@ function render(reason = 'update') {
   if (
     reason === 'init' ||
     reason === 'folder' ||
+    reason === 'folder-delete' ||
     reason === 'move' ||
     reason === 'upload' ||
+    reason === 'delete' ||
     reason === 'favorite' ||
     reason === 'update'
   ) {
@@ -165,6 +187,8 @@ function render(reason = 'update') {
     renderGallery(galleryRegion, { animate: reason === 'init' })
     renderInspector(inspector)
     renderBulkBar(bulkBar)
+    updateToolbarView()
+    syncLightbox()
 
     if (reason === 'folder' || reason === 'upload') {
       window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -172,6 +196,7 @@ function render(reason = 'update') {
   } else if (reason === 'filters') {
     updateTopbarSubtitle(state)
     syncSearchValue(state)
+    renderSidebar(sidebar)
     renderToolbar(toolbar)
     renderGallery(galleryRegion)
     renderInspector(inspector)
@@ -191,13 +216,19 @@ function render(reason = 'update') {
     syncLightbox()
 
     if (state.filters.colors.length > 0) {
-      renderToolbar(toolbar)
       renderGallery(galleryRegion)
       renderBulkBar(bulkBar)
     }
   } else if (reason === 'sort' || reason === 'reorder') {
     renderGallery(galleryRegion)
     syncSortValue(state)
+  } else if (reason === 'view') {
+    renderToolbar(toolbar)
+    renderGallery(galleryRegion)
+    updateToolbarView()
+  } else if (reason === 'view-style') {
+    updateGalleryLayout()
+    updateToolbarView()
   } else if (reason === 'folder-create') {
     renderSidebar(sidebar)
   }
@@ -328,6 +359,15 @@ function startFolderCreate() {
 
 function setupListeners() {
   document.addEventListener('click', async (event) => {
+    const summary = event.target.closest('.sidebar__summary')
+    if (
+      summary &&
+      app.classList.contains('is-sidebar-collapsed') &&
+      !window.matchMedia('(max-width: 1024px)').matches
+    ) {
+      setSidebarCollapsed(false)
+    }
+
     const target = event.target.closest('[data-action]')
     if (!target) return
 
@@ -340,10 +380,20 @@ function setupListeners() {
 
       case 'toggle-sidebar': {
         const state = getState()
-        if (!state.sidebarOpen) setInspectorDrawer(false)
-        setSidebarOpen(!state.sidebarOpen)
+        const mobile = window.matchMedia('(max-width: 1024px)').matches
+
+        if (mobile) {
+          if (!state.sidebarOpen) setInspectorDrawer(false)
+          setSidebarOpen(!state.sidebarOpen)
+        } else {
+          setSidebarCollapsed(!state.sidebarCollapsed)
+        }
         break
       }
+
+      case 'close-sidebar':
+        setSidebarOpen(false)
+        break
 
       case 'toggle-inspector': {
         const state = getState()
@@ -389,6 +439,14 @@ function setupListeners() {
         openMoveDialog([target.dataset.id])
         break
 
+      case 'rename-image':
+        openRenameDialog(target.dataset.id)
+        break
+
+      case 'view-layout':
+        setView({ layout: target.dataset.layout === 'list' ? 'list' : 'grid' }, 'view')
+        break
+
       case 'bulk-move':
         openMoveDialog(getState().selectedIds)
         break
@@ -396,6 +454,24 @@ function setupListeners() {
       case 'bulk-favorite':
         toggleBulkFavorite()
         break
+
+      case 'bulk-delete': {
+        const ids = getState().selectedIds
+        if (ids.length === 0) break
+
+        const confirmed = await confirmAction({
+          title: 'Eliminar selección',
+          message: `Se eliminarán ${ids.length} ${ids.length === 1 ? 'imagen' : 'imágenes'} de la biblioteca. Esta acción no se puede deshacer.`,
+          confirmLabel: 'Eliminar',
+          danger: true
+        })
+        if (!confirmed) break
+
+        if (isLightboxOpen()) closeLightbox()
+        const total = deleteImages(ids)
+        toast(total === 1 ? 'Imagen eliminada' : `${total} imágenes eliminadas`)
+        break
+      }
 
       case 'bulk-clear':
         clearSelection()
@@ -409,12 +485,71 @@ function setupListeners() {
         clearFilters()
         break
 
+      case 'delete-image': {
+        const image = getState().images.find(
+          (entry) => entry.id === target.dataset.id
+        )
+        if (!image) break
+
+        const confirmed = await confirmAction({
+          title: 'Eliminar imagen',
+          message: `Se eliminará “${image.title}” de la biblioteca. Esta acción no se puede deshacer.`,
+          confirmLabel: 'Eliminar',
+          danger: true
+        })
+        if (!confirmed) break
+
+        if (isLightboxOpen()) closeLightbox()
+        deleteImage(image.id)
+        toast('Imagen eliminada')
+        break
+      }
+
+      case 'delete-all-images': {
+        const state = getState()
+        if (state.images.length === 0) break
+
+        const confirmed = await confirmAction({
+          title: 'Eliminar todas las imágenes',
+          message: `Se eliminarán las ${state.images.length} imágenes de la biblioteca. Esta acción no se puede deshacer.`,
+          confirmLabel: 'Eliminar todas',
+          danger: true
+        })
+        if (!confirmed) break
+
+        if (isLightboxOpen()) closeLightbox()
+        const total = deleteAllImages()
+        toast(total === 1 ? 'Imagen eliminada' : `${total} imágenes eliminadas`)
+        break
+      }
+
+      case 'delete-folder': {
+        const folder = getFolder(target.dataset.folder)
+        if (!folder) break
+
+        const confirmed = await confirmAction({
+          title: 'Eliminar carpeta',
+          message: `Se eliminará la carpeta “${folder.name}”. Las imágenes que contenga se moverán a “Sin clasificar”.`,
+          confirmLabel: 'Eliminar carpeta',
+          danger: true
+        })
+        if (!confirmed) break
+
+        const removed = deleteFolder(folder.id)
+        if (removed) toast(`Carpeta “${folder.name}” eliminada`)
+        break
+      }
+
       case 'toggle-color':
         toggleColor(target.dataset.color)
         break
 
       case 'toggle-format':
         toggleFormat(target.dataset.format)
+        break
+
+      case 'toggle-tag':
+        toggleTag(target.dataset.tag)
         break
 
       case 'open-image':
@@ -473,11 +608,37 @@ function setupListeners() {
       return
     }
 
+    const layout = event.target.closest('[data-view-layout]')
+    if (layout) {
+      setView({ layout: layout.value }, 'view')
+      return
+    }
+
+    const meta = event.target.closest('[data-view-meta]')
+    if (meta) {
+      setView({ showMeta: meta.checked }, 'view-style')
+      return
+    }
+
     const sort = event.target.closest('[data-sort-select]')
     if (sort) setSort(sort.value)
   })
 
   document.addEventListener('input', (event) => {
+    const columns = event.target.closest('[data-view-columns]')
+    if (columns) {
+      const value = Number(columns.value)
+      setView({ columns: value }, 'view-style')
+      return
+    }
+
+    const gap = event.target.closest('[data-view-gap]')
+    if (gap) {
+      const value = Number(gap.value)
+      setView({ gap: value }, 'view-style')
+      return
+    }
+
     const search = event.target.closest('[data-search]')
     if (!search) return
 
@@ -514,7 +675,7 @@ function setupListeners() {
 
   scrim.addEventListener('click', closeOverlays)
 
-  for (const id of ['move-dialog', 'upload-dialog']) {
+  for (const id of ['move-dialog', 'rename-dialog', 'upload-dialog', 'confirm-dialog']) {
     const dialog = document.getElementById(id)
     dialog?.addEventListener('click', (event) => {
       if (event.target === dialog) dialog.close()
@@ -525,6 +686,7 @@ function setupListeners() {
     window.clearTimeout(resizeTimer)
     resizeTimer = window.setTimeout(() => {
       if (window.innerWidth > 1200) setInspectorDrawer(false)
+      if (window.innerWidth > 1024) setSidebarOpen(false)
       applyUiState(getState())
     }, 120)
   })

@@ -12,7 +12,8 @@ export function getTopbarSubtitle(state = getState()) {
   const filtersActive =
     state.filters.query.trim() !== '' ||
     state.filters.colors.length > 0 ||
-    state.filters.formats.length > 0
+    state.filters.formats.length > 0 ||
+    state.filters.tags.length > 0
 
   const totalBytes = getTotalBytes(state.images)
   const visibleBytes = getTotalBytes(visible)
@@ -27,14 +28,23 @@ export function renderTopbar(root) {
   const subtitle = getTopbarSubtitle(state)
 
   const inspectorExpanded = state.inspectorOpen || state.inspectorDrawer
+  const mobile = window.matchMedia('(max-width: 1024px)').matches
+  const sidebarExpanded = mobile ? state.sidebarOpen : !state.sidebarCollapsed
+  const sidebarLabel = mobile
+    ? sidebarExpanded
+      ? 'Cerrar menú de navegación'
+      : 'Abrir menú de navegación'
+    : sidebarExpanded
+      ? 'Ocultar menú de navegación'
+      : 'Mostrar menú de navegación'
 
   root.innerHTML = `
     <button
       class="icon-btn topbar__menu"
       type="button"
       data-action="toggle-sidebar"
-      aria-label="${state.sidebarOpen ? 'Cerrar menú de navegación' : 'Abrir menú de navegación'}"
-      aria-expanded="${state.sidebarOpen}"
+      aria-label="${sidebarLabel}"
+      aria-expanded="${sidebarExpanded}"
       aria-controls="sidebar"
     >
       <svg class="icon" aria-hidden="true"><use href="#icon-menu"></use></svg>
@@ -58,17 +68,6 @@ export function renderTopbar(root) {
           autocomplete="off"
           value="${escapeHtml(state.filters.query)}"
         />
-      </label>
-
-      <label class="sort">
-        <svg class="icon" aria-hidden="true"><use href="#icon-sort"></use></svg>
-        <span class="visually-hidden">Ordenar imágenes</span>
-        <select data-sort-select data-focus-key="sort">
-          <option value="recent" ${state.sort === 'recent' ? 'selected' : ''}>Más recientes</option>
-          <option value="name" ${state.sort === 'name' ? 'selected' : ''}>Nombre A–Z</option>
-          <option value="size" ${state.sort === 'size' ? 'selected' : ''}>Peso mayor</option>
-          <option value="manual" ${state.sort === 'manual' ? 'selected' : ''}>Orden manual</option>
-        </select>
       </label>
 
       <button class="btn btn--ghost" type="button" data-action="open-export" data-focus-key="export">

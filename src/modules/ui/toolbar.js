@@ -1,88 +1,90 @@
-import { getCounts, getState, getVisibleImages } from '../store.js'
+import { getState, getVisibleImages } from '../store.js'
 import { formatNumber } from '../utils.js'
 
-const COLOR_FILTERS = [
-  { id: 'red', label: 'Rojos', color: '#d93a2b' },
-  { id: 'orange', label: 'Naranjas', color: '#e87722' },
-  { id: 'yellow', label: 'Amarillos', color: '#e8b923' },
-  { id: 'green', label: 'Verdes', color: '#3e7c4a' },
-  { id: 'cyan', label: 'Cian', color: '#2b9c9c' },
-  { id: 'blue', label: 'Azules', color: '#2a4bd7' },
-  { id: 'purple', label: 'Morados', color: '#7a4b9e' },
-  { id: 'neutral', label: 'Neutros', color: '#8c8a85' }
-]
-
-const FORMATS = ['JPG', 'PNG', 'WEBP', 'RAW']
+function layoutLabelFor(state) {
+  return state.view.layout === 'list'
+    ? 'Lista'
+    : `Cuadrícula ${state.view.columns} × ${state.view.columns}`
+}
 
 export function renderToolbar(root) {
   const state = getState()
   const visible = getVisibleImages(state)
-  const counts = getCounts(state)
-  const colorsActive = state.filters.colors.length > 0
   const filtersActive =
-    colorsActive ||
+    state.filters.colors.length > 0 ||
     state.filters.formats.length > 0 ||
+    state.filters.tags.length > 0 ||
     state.filters.query.trim() !== ''
-
-  const colorChips = COLOR_FILTERS.map(
-    (filter) => `
-      <button
-        class="chip${state.filters.colors.includes(filter.id) ? ' is-active' : ''}"
-        type="button"
-        data-action="toggle-color"
-        data-color="${filter.id}"
-        data-focus-key="color-${filter.id}"
-        aria-pressed="${state.filters.colors.includes(filter.id)}"
-      >
-        <span class="chip__dot" style="--dot: ${filter.color}" aria-hidden="true"></span>
-        ${filter.label}
-      </button>
-    `
-  ).join('')
-
-  const formatButtons = FORMATS.map((format) => {
-    const active = state.filters.formats.includes(format)
-    return `
-      <button
-        class="segmented__item${active ? ' is-active' : ''}"
-        type="button"
-        data-action="toggle-format"
-        data-format="${format}"
-        data-focus-key="format-${format}"
-        aria-pressed="${active}"
-      >
-        ${format} <span class="mono">${formatNumber(counts.formats[format] ?? 0)}</span>
-      </button>
-    `
-  }).join('')
 
   const allSelected =
     visible.length > 0 &&
     visible.every((image) => state.selectedIds.includes(image.id))
 
+  const { layout, columns, gap } = state.view
+  const isList = layout === 'list'
+
   root.innerHTML = `
     <div class="toolbar__group">
-      <span class="toolbar__label">Color</span>
-      <div class="chips" role="group" aria-label="Filtrar por color dominante">
-        <button
-          class="chip${colorsActive ? '' : ' is-active'}"
-          type="button"
-          data-action="toggle-color"
-          data-color="all"
-          data-focus-key="color-all"
-          aria-pressed="${!colorsActive}"
-        >
-          <span class="chip__dot chip__dot--all" aria-hidden="true"></span>
-          Todos
-        </button>
-        ${colorChips}
-      </div>
-    </div>
+      <span class="toolbar__label">Vista</span>
+      <div class="toolbar__view">
+        <div class="segmented segmented--icons" role="group" aria-label="Modo de vista">
+          <button
+            class="segmented__item${isList ? '' : ' is-active'}"
+            type="button"
+            data-action="view-layout"
+            data-layout="grid"
+            data-focus-key="layout-grid"
+            aria-pressed="${!isList}"
+            title="Cuadrícula"
+          >
+            <svg class="icon" aria-hidden="true"><use href="#icon-grid"></use></svg>
+            <span class="visually-hidden">Cuadrícula</span>
+          </button>
+          <button
+            class="segmented__item${isList ? ' is-active' : ''}"
+            type="button"
+            data-action="view-layout"
+            data-layout="list"
+            data-focus-key="layout-list"
+            aria-pressed="${isList}"
+            title="Lista"
+          >
+            <svg class="icon" aria-hidden="true"><use href="#icon-list"></use></svg>
+            <span class="visually-hidden">Lista</span>
+          </button>
+        </div>
 
-    <div class="toolbar__group">
-      <span class="toolbar__label">Formato</span>
-      <div class="segmented" role="group" aria-label="Filtrar por formato de archivo">
-        ${formatButtons}
+
+
+        <label class="toolbar__range">
+          <span>Columnas</span>
+          <input
+            id="toolbar-columns"
+            type="range"
+            min="3"
+            max="8"
+            step="1"
+            value="${columns}"
+            data-view-columns
+            data-focus-key="toolbar-columns"
+          />
+          <output for="toolbar-columns" data-output="columns">${columns} × ${columns}</output>
+        </label>
+
+        <label class="toolbar__range">
+          <span>Separación</span>
+          <input
+            id="toolbar-gap"
+            type="range"
+            min="6"
+            max="20"
+            step="2"
+            value="${gap}"
+            data-view-gap
+            data-focus-key="toolbar-gap"
+          />
+          <output for="toolbar-gap" data-output="gap">${gap} px</output>
+        </label>
       </div>
     </div>
 
@@ -106,6 +108,68 @@ export function renderToolbar(root) {
       >
         Limpiar filtros
       </button>
+      <button
+        class="text-btn text-btn--danger"
+        type="button"
+        data-action="delete-all-images"
+        data-focus-key="delete-all-images"
+        aria-label="Eliminar todas las imágenes de la biblioteca"
+        ${state.images.length === 0 ? 'disabled' : ''}
+      >
+        Eliminar todas
+      </button>
+
+      <label class="sort toolbar__sort">
+        <svg class="icon" aria-hidden="true"><use href="#icon-sort"></use></svg>
+        <span class="visually-hidden">Ordenar imágenes</span>
+        <select data-sort-select data-focus-key="sort">
+          <option value="recent" ${state.sort === 'recent' ? 'selected' : ''}>Más recientes</option>
+          <option value="name" ${state.sort === 'name' ? 'selected' : ''}>Nombre A–Z</option>
+          <option value="size" ${state.sort === 'size' ? 'selected' : ''}>Peso mayor</option>
+          <option value="manual" ${state.sort === 'manual' ? 'selected' : ''}>Orden manual</option>
+        </select>
+      </label>
     </div>
   `
+}
+
+export function updateToolbarView() {
+  const state = getState()
+  const { layout, columns, gap } = state.view
+  const isList = layout === 'list'
+
+  const layoutLabel = document.querySelector('[data-toolbar-layout-label]')
+  if (layoutLabel) layoutLabel.textContent = layoutLabelFor(state)
+
+  const gapLabel = document.querySelector('[data-toolbar-gap-label]')
+  if (gapLabel) gapLabel.textContent = `Separación ${gap} px`
+
+  const summaryIcon = document.querySelector('.toolbar__summary use')
+  summaryIcon?.setAttribute('href', isList ? '#icon-list' : '#icon-grid')
+
+  document.querySelectorAll('[data-action="view-layout"]').forEach((button) => {
+    const active = button.dataset.layout === layout
+    button.classList.toggle('is-active', active)
+    button.setAttribute('aria-pressed', String(active))
+  })
+
+  document.querySelectorAll('[data-view-layout]').forEach((select) => {
+    if (select.value !== layout) select.value = layout
+  })
+
+  document.querySelectorAll('[data-view-columns]').forEach((input) => {
+    if (input.value !== String(columns)) input.value = String(columns)
+  })
+
+  document.querySelectorAll('[data-view-gap]').forEach((input) => {
+    if (input.value !== String(gap)) input.value = String(gap)
+  })
+
+  document.querySelectorAll('[data-output="columns"]').forEach((output) => {
+    output.textContent = `${columns} × ${columns}`
+  })
+
+  document.querySelectorAll('[data-output="gap"]').forEach((output) => {
+    output.textContent = `${gap} px`
+  })
 }

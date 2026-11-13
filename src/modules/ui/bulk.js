@@ -25,6 +25,10 @@ export function renderBulkBar(root) {
         <svg class="icon" aria-hidden="true"><use href="#icon-heart"></use></svg>
         ${allFavorite ? 'Quitar favorito' : 'Favorito'}
       </button>
+      <button class="bulk__btn bulk__btn--danger" type="button" data-action="bulk-delete" data-focus-key="bulk-delete">
+        <svg class="icon" aria-hidden="true"><use href="#icon-trash"></use></svg>
+        Eliminar
+      </button>
       <button class="bulk__btn" type="button" data-action="bulk-clear" data-focus-key="bulk-clear">
         <svg class="icon" aria-hidden="true"><use href="#icon-close"></use></svg>
         Quitar selección

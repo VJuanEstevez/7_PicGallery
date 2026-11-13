@@ -1,4 +1,4 @@
-import { getState, getVisibleImages } from '../store.js'
+import { getFolderTitle, getState, getVisibleImages } from '../store.js'
 import { escapeHtml, formatBytes } from '../utils.js'
 
 function paletteSpine(image) {
@@ -20,10 +20,52 @@ function cardTemplate(image, index, state) {
   const format = escapeHtml(image.format)
   const formatTitle =
     image.format === 'RAW' ? 'RAW · vista previa JPG' : image.format
+  const isList = state.view.layout === 'list'
+  const folderName = escapeHtml(getFolderTitle(image.folderId))
+  const tags = (image.tags ?? [])
+    .map((tag) => `<li>${escapeHtml(tag)}</li>`)
+    .join('')
+
+  const description = image.description
+    ? `<p class="card__desc">${escapeHtml(image.description)}</p>`
+    : ''
+
+  const facts = isList
+    ? `
+      <dl class="card__facts">
+        <div>
+          <dt>Formato</dt>
+          <dd>${format}${image.format === 'RAW' ? ' · proxy JPG' : ''}</dd>
+        </div>
+        <div>
+          <dt>Dimensiones</dt>
+          <dd>${image.width} × ${image.height} px</dd>
+        </div>
+        <div>
+          <dt>Peso</dt>
+          <dd>${formatBytes(image.bytes)}</dd>
+        </div>
+        <div>
+          <dt>Carpeta</dt>
+          <dd>${folderName}</dd>
+        </div>
+        ${
+          tags
+            ? `
+              <div class="card__fact--tags">
+                <dt>Etiquetas</dt>
+                <dd><ul class="card__tags">${tags}</ul></dd>
+              </div>
+            `
+            : ''
+        }
+      </dl>
+    `
+    : ''
 
   return `
     <article
-      class="card${selected ? ' is-selected' : ''}${active ? ' is-active' : ''}"
+      class="card${isList ? ' card--list' : ''}${selected ? ' is-selected' : ''}${active ? ' is-active' : ''}"
       data-card-id="${escapeHtml(image.id)}"
       draggable="true"
       style="--i: ${index}"
@@ -77,14 +119,42 @@ function cardTemplate(image, index, state) {
           <svg class="icon" aria-hidden="true"><use href="#icon-heart"></use></svg>
         </button>
 
+        <button
+          class="card__rename"
+          type="button"
+          data-action="rename-image"
+          data-id="${escapeHtml(image.id)}"
+          data-focus-key="rename-${escapeHtml(image.id)}"
+          aria-label="Cambiar el nombre de ${title}"
+          title="Cambiar nombre"
+        >
+          <svg class="icon" aria-hidden="true"><use href="#icon-pencil"></use></svg>
+        </button>
+
+        <button
+          class="card__delete"
+          type="button"
+          data-action="delete-image"
+          data-id="${escapeHtml(image.id)}"
+          data-focus-key="delete-${escapeHtml(image.id)}"
+          aria-label="Eliminar ${title}"
+          title="Eliminar imagen"
+        >
+          <svg class="icon" aria-hidden="true"><use href="#icon-trash"></use></svg>
+        </button>
+
         <span class="format-badge" data-format="${format}" title="${formatTitle}">
           ${format}
         </span>
       </div>
 
       <div class="card__meta">
-        <h3 class="card__title" title="${title}">${title}</h3>
-        <span class="card__spec">${image.width}×${image.height} · ${formatBytes(image.bytes)}</span>
+        <div class="card__heading">
+          <h3 class="card__title" title="${title}">${title}</h3>
+          <span class="card__spec">${image.width}×${image.height} · ${formatBytes(image.bytes)}</span>
+        </div>
+        ${description}
+        ${facts}
       </div>
     </article>
   `
@@ -114,7 +184,7 @@ function emptyTemplate(state, hasFilters) {
           <svg class="icon"><use href="#icon-search"></use></svg>
         </span>
         <h2>Nada por aquí</h2>
-        <p>No hay imágenes que coincidan con los filtros activos. Prueba con otro color, formato o búsqueda.</p>
+        <p>No hay imágenes que coincidan con los filtros activos. Prueba con otro color, formato, etiqueta o búsqueda.</p>
         <button class="btn btn--ghost" type="button" data-action="clear-filters">
           Limpiar filtros
         </button>
@@ -143,7 +213,8 @@ export function renderGallery(root, options = {}) {
   const hasFilters =
     state.filters.query.trim() !== '' ||
     state.filters.colors.length > 0 ||
-    state.filters.formats.length > 0
+    state.filters.formats.length > 0 ||
+    state.filters.tags.length > 0
 
   if (visible.length === 0) {
     root.innerHTML = `
@@ -158,10 +229,16 @@ export function renderGallery(root, options = {}) {
     .map((image, index) => cardTemplate(image, index, state))
     .join('')
 
+  const { layout, columns, gap, showMeta } = state.view
+
   root.innerHTML = `
     <section class="gallery-wrap" aria-label="Imágenes de la colección">
       <h2 class="visually-hidden">Imágenes de la colección</h2>
-      <div class="gallery${options.animate ? ' is-entering' : ''}" id="gallery">
+      <div
+        class="gallery${layout === 'list' ? ' is-list' : ''}${showMeta ? '' : ' is-meta-hidden'}${options.animate ? ' is-entering' : ''}"
+        id="gallery"
+        style="--cols: ${columns}; --gap: ${gap}px"
+      >
         ${cards}
       </div>
     </section>
@@ -172,6 +249,18 @@ export function renderGallery(root, options = {}) {
       document.getElementById('gallery')?.classList.remove('is-entering')
     }, 1100)
   }
+}
+
+export function updateGalleryLayout() {
+  const state = getState()
+  const gallery = document.getElementById('gallery')
+  if (!gallery) return
+
+  const { layout, columns, gap, showMeta } = state.view
+  gallery.style.setProperty('--cols', String(columns))
+  gallery.style.setProperty('--gap', `${gap}px`)
+  gallery.classList.toggle('is-list', layout === 'list')
+  gallery.classList.toggle('is-meta-hidden', !showMeta)
 }
 
 export function updateSelectionUI() {

@@ -22,6 +22,7 @@ let settings = {
   columns: 3,
   scope: 'collection',
   palette: true,
+  name: true,
   meta: true
 }
 
@@ -127,14 +128,24 @@ function buildSheet(images, options) {
                       loading="eager"
                       decoding="async"
                     />
-                    <figcaption class="sheet__caption">
-                      <strong>${escapeHtml(image.title)}</strong>
-                      ${
-                        options.meta
-                          ? `<span>${escapeHtml(image.format)} · ${image.width}×${image.height} · ${formatBytes(image.bytes)}</span>`
-                          : ''
-                      }
-                    </figcaption>
+                    ${
+                      options.name || options.meta
+                        ? `
+                          <figcaption class="sheet__caption">
+                            ${
+                              options.name
+                                ? `<strong>${escapeHtml(image.title)}</strong>`
+                                : ''
+                            }
+                            ${
+                              options.meta
+                                ? `<span>${escapeHtml(image.format)} · ${image.width}×${image.height} · ${formatBytes(image.bytes)}</span>`
+                                : ''
+                            }
+                          </figcaption>
+                        `
+                        : ''
+                    }
                     ${
                       options.palette && image.palette
                         ? `<div class="sheet__palette" aria-hidden="true">${image.palette
@@ -216,6 +227,7 @@ function readSettings() {
     palette: Boolean(
       element.querySelector('[data-export-field="palette"]')?.checked
     ),
+    name: Boolean(element.querySelector('[data-export-field="name"]')?.checked),
     meta: Boolean(element.querySelector('[data-export-field="meta"]')?.checked)
   }
 }
@@ -246,6 +258,7 @@ function renderExportDialog() {
     columns: 3,
     scope: hasSelection ? 'selection' : 'collection',
     palette: true,
+    name: true,
     meta: true
   }
 
@@ -320,6 +333,10 @@ function renderExportDialog() {
           <label class="toggle-field">
             <input type="checkbox" data-export-field="palette" ${settings.palette ? 'checked' : ''} />
             Mostrar paleta de color
+          </label>
+          <label class="toggle-field">
+            <input type="checkbox" data-export-field="name" ${settings.name ? 'checked' : ''} />
+            Mostrar nombre
           </label>
           <label class="toggle-field">
             <input type="checkbox" data-export-field="meta" ${settings.meta ? 'checked' : ''} />

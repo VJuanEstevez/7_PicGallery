@@ -71,12 +71,30 @@ function buildSkeleton(state) {
           </button>
           <button
             class="lightbox__tool"
+            id="lightbox-rename"
+            type="button"
+            data-action="rename-image"
+            aria-label="Cambiar nombre"
+          >
+            <svg class="icon" aria-hidden="true"><use href="#icon-pencil"></use></svg>
+          </button>
+          <button
+            class="lightbox__tool"
             id="lightbox-download"
             type="button"
             data-action="download"
             aria-label="Descargar imagen"
           >
             <svg class="icon" aria-hidden="true"><use href="#icon-download"></use></svg>
+          </button>
+          <button
+            class="lightbox__tool lightbox__tool--danger"
+            id="lightbox-delete"
+            type="button"
+            data-action="delete-image"
+            aria-label="Eliminar imagen"
+          >
+            <svg class="icon" aria-hidden="true"><use href="#icon-trash"></use></svg>
           </button>
           <button
             class="lightbox__tool"
@@ -168,6 +186,8 @@ function updateLightbox() {
   const palette = element.querySelector('#lightbox-palette')
   const favorite = element.querySelector('#lightbox-fav')
   const download = element.querySelector('#lightbox-download')
+  const rename = element.querySelector('#lightbox-rename')
+  const remove = element.querySelector('#lightbox-delete')
   const filmstrip = element.querySelector('#lightbox-filmstrip')
 
   counter.textContent = formatCounter(index, list.length)
@@ -218,6 +238,16 @@ function updateLightbox() {
 
   download.dataset.id = image.id
   download.setAttribute('aria-label', `Descargar ${image.title}`)
+
+  if (rename) {
+    rename.dataset.id = image.id
+    rename.setAttribute('aria-label', `Cambiar el nombre de ${image.title}`)
+  }
+
+  if (remove) {
+    remove.dataset.id = image.id
+    remove.setAttribute('aria-label', `Eliminar ${image.title}`)
+  }
 
   if (filmstrip) {
     filmstrip.querySelectorAll('[data-action="lightbox-go"]').forEach((thumb) => {
@@ -306,9 +336,24 @@ export function syncLightbox() {
   const image = currentImage()
   if (!element || !image) return
 
+  const title = element.querySelector('#lightbox-title')
+  if (title) title.textContent = image.title
+
+  const picture = element.querySelector('#lightbox-image')
+  if (picture) picture.alt = image.title
+
   const favorite = element.querySelector('#lightbox-fav')
   favorite?.classList.toggle('is-fav', Boolean(image.favorite))
   favorite?.setAttribute('aria-pressed', String(Boolean(image.favorite)))
+
+  const download = element.querySelector('#lightbox-download')
+  download?.setAttribute('aria-label', `Descargar ${image.title}`)
+
+  const rename = element.querySelector('#lightbox-rename')
+  rename?.setAttribute('aria-label', `Cambiar el nombre de ${image.title}`)
+
+  const remove = element.querySelector('#lightbox-delete')
+  remove?.setAttribute('aria-label', `Eliminar ${image.title}`)
 
   const palette = element.querySelector('#lightbox-palette')
   if (palette) {

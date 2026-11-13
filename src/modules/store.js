@@ -1,4 +1,4 @@
-import { getAllUploads } from './db.js'
+import { deleteUpload, getAllUploads } from './db.js'
 import { seedFolders, seedImages } from './seed.js'
 import { loadSavedState, savePersistedState } from './storage.js'
 import { assetUrl, debounce, slugify } from './utils.js'
@@ -11,6 +11,7 @@ const state = {
   folders: seedFolders.map((folder) => ({ ...folder })),
   images: seedImages.map((image) => ({
     ...image,
+    tags: [...(image.tags ?? [])],
     src: assetUrl(image.file),
     origin: 'seed',
     palette: null
@@ -20,13 +21,23 @@ const state = {
   filters: {
     query: '',
     colors: [],
-    formats: []
+    formats: [],
+    tags: []
+  },
+  view: {
+    layout: 'grid',
+    columns: 4,
+    gap: 16,
+    showMeta: true
   },
   selectedIds: [],
   activeImageId: null,
   sidebarOpen: false,
+  sidebarCollapsed: false,
   inspectorOpen: true,
   inspectorDrawer: false,
+  deletedIds: [],
+  deletedFolderIds: [],
   ready: false
 }
 
@@ -34,14 +45,19 @@ const listeners = new Set()
 
 const persist = debounce(() => {
   savePersistedState({
-    version: 1,
+    version: 2,
     folders: state.folders,
     images: state.images.map(({ src, ...image }) => image),
     orderIds: state.images.map((image) => image.id),
     sort: state.sort,
     activeFolder: state.activeFolder,
     activeImageId: state.activeImageId,
-    inspectorOpen: state.inspectorOpen
+    inspectorOpen: state.inspectorOpen,
+    sidebarCollapsed: state.sidebarCollapsed,
+    filters: state.filters,
+    view: state.view,
+    deletedIds: state.deletedIds,
+    deletedFolderIds: state.deletedFolderIds
   })
 }, 250)
 
@@ -119,6 +135,13 @@ export function getVisibleImages(current = state) {
     })
   }
 
+  if (current.filters.tags.length > 0) {
+    images = images.filter((image) => {
+      const tags = image.tags ?? []
+      return current.filters.tags.every((tag) => tags.includes(tag))
+    })
+  }
+
   if (current.sort === 'recent') {
     images = [...images].sort(
       (first, second) => new Date(second.createdAt) - new Date(first.createdAt)
@@ -167,6 +190,24 @@ export function getCounts(current = state) {
       getFormatBreakdown(current.images).map((entry) => [entry.format, entry.count])
     )
   }
+}
+
+export function getTags(images = state.images) {
+  const counts = new Map()
+
+  for (const image of images) {
+    for (const tag of image.tags ?? []) {
+      counts.set(tag, (counts.get(tag) ?? 0) + 1)
+    }
+  }
+
+  return [...counts.entries()]
+    .sort(
+      (first, second) =>
+        second[1] - first[1] ||
+        first[0].localeCompare(second[0], 'es', { sensitivity: 'base' })
+    )
+    .map(([tag, count]) => ({ tag, count }))
 }
 
 export function getActiveImage(current = state) {
@@ -236,8 +277,22 @@ export function toggleFormat(format) {
   notify('filters')
 }
 
+export function toggleTag(tag) {
+  const tags = new Set(state.filters.tags)
+  if (tags.has(tag)) tags.delete(tag)
+  else tags.add(tag)
+  state.filters.tags = [...tags]
+
+  state.selectedIds = []
+  const visible = getVisibleImages()
+  if (!visible.some((image) => image.id === state.activeImageId)) {
+    state.activeImageId = visible[0]?.id ?? null
+  }
+  notify('filters')
+}
+
 export function clearFilters() {
-  state.filters = { query: '', colors: [], formats: [] }
+  state.filters = { query: '', colors: [], formats: [], tags: [] }
   state.selectedIds = []
   const visible = getVisibleImages()
   if (!visible.some((image) => image.id === state.activeImageId)) {
@@ -320,6 +375,83 @@ export function moveImages(ids, folderId) {
   notify('move')
 }
 
+export function deleteImages(ids) {
+  const removed = new Set(ids)
+  const gone = state.images.filter((image) => removed.has(image.id))
+  if (gone.length === 0) return 0
+
+  state.images = state.images.filter((image) => !removed.has(image.id))
+
+  const deleted = new Set(state.deletedIds)
+  for (const image of gone) {
+    deleted.add(image.id)
+    if (image.origin === 'upload') {
+      deleteUpload(image.id).catch(() => null)
+      if (image.src?.startsWith('blob:')) URL.revokeObjectURL(image.src)
+    }
+  }
+  state.deletedIds = [...deleted]
+
+  state.selectedIds = state.selectedIds.filter((id) => !removed.has(id))
+  if (removed.has(state.activeImageId)) state.activeImageId = null
+  syncActiveWithVisible()
+  notify('delete')
+  return gone.length
+}
+
+export function deleteImage(id) {
+  return deleteImages([id])
+}
+
+export function renameImage(id, title) {
+  const image = state.images.find((entry) => entry.id === id)
+  if (!image) return null
+
+  const clean = String(title ?? '').trim()
+  if (!clean) return null
+  if (image.title === clean) return clean
+
+  image.title = clean
+  notify('update')
+  return clean
+}
+
+export function deleteAllImages() {
+  return deleteImages(state.images.map((image) => image.id))
+}
+
+export function deleteFolder(id) {
+  if (id === 'inbox') return false
+
+  const folder = getFolder(id)
+  if (!folder) return false
+
+  for (const image of state.images) {
+    if (image.folderId === id) image.folderId = 'inbox'
+  }
+
+  state.folders = state.folders.filter((entry) => entry.id !== id)
+  if (!state.deletedFolderIds.includes(id)) state.deletedFolderIds.push(id)
+  if (state.activeFolder === id) state.activeFolder = 'all'
+
+  syncActiveWithVisible()
+  notify('folder-delete')
+  return true
+}
+
+export function setView(patch, reason = 'view-style') {
+  const next = { ...state.view, ...patch }
+
+  state.view = {
+    layout: next.layout === 'list' ? 'list' : 'grid',
+    columns: Math.min(8, Math.max(3, Number(next.columns) || 4)),
+    gap: Math.min(48, Math.max(0, Number(next.gap) || 0)),
+    showMeta: Boolean(next.showMeta)
+  }
+
+  notify(reason)
+}
+
 export function reorderImages(draggedIds, targetId, position) {
   const dragged = new Set(draggedIds)
   if (dragged.size === 0 || dragged.has(targetId)) return
@@ -357,6 +489,7 @@ export function createFolder(name) {
     name: cleanName,
     color: FOLDER_COLORS[state.folders.length % FOLDER_COLORS.length]
   })
+  state.deletedFolderIds = state.deletedFolderIds.filter((deleted) => deleted !== id)
   notify('folder-create')
   return id
 }
@@ -390,6 +523,11 @@ export function setSidebarOpen(open) {
   notify('ui')
 }
 
+export function setSidebarCollapsed(collapsed) {
+  state.sidebarCollapsed = Boolean(collapsed)
+  notify('ui')
+}
+
 export function setInspectorOpen(open) {
   state.inspectorOpen = Boolean(open)
   notify('ui')
@@ -411,19 +549,60 @@ export async function initStore() {
   const saved = loadSavedState()
 
   if (saved) {
+    state.deletedIds = Array.isArray(saved.deletedIds)
+      ? [...new Set(saved.deletedIds)]
+      : []
+    state.deletedFolderIds = Array.isArray(saved.deletedFolderIds)
+      ? [...new Set(saved.deletedFolderIds)]
+      : []
+
+    const deletedFolders = new Set(state.deletedFolderIds)
+    state.folders = state.folders.filter((folder) => !deletedFolders.has(folder.id))
+
     if (Array.isArray(saved.folders) && saved.folders.length > 0) {
-      const savedIds = new Set(saved.folders.map((folder) => folder.id))
-      const missing = seedFolders.filter((folder) => !savedIds.has(folder.id))
-      state.folders = [...saved.folders, ...missing]
+      const restored = saved.folders.filter(
+        (folder) => !deletedFolders.has(folder.id)
+      )
+      const savedIds = new Set(restored.map((folder) => folder.id))
+      const missing = seedFolders.filter(
+        (folder) => !savedIds.has(folder.id) && !deletedFolders.has(folder.id)
+      )
+      state.folders = [...restored, ...missing]
     }
 
     if (saved.sort) state.sort = saved.sort
     if (saved.activeFolder) state.activeFolder = saved.activeFolder
     if (saved.activeImageId) state.activeImageId = saved.activeImageId
     if (typeof saved.inspectorOpen === 'boolean') state.inspectorOpen = saved.inspectorOpen
+    if (typeof saved.sidebarCollapsed === 'boolean') {
+      state.sidebarCollapsed = saved.sidebarCollapsed
+    }
+
+    if (saved.filters) {
+      state.filters = {
+        query: typeof saved.filters.query === 'string' ? saved.filters.query : '',
+        colors: Array.isArray(saved.filters.colors) ? saved.filters.colors : [],
+        formats: Array.isArray(saved.filters.formats) ? saved.filters.formats : [],
+        tags: Array.isArray(saved.filters.tags) ? saved.filters.tags : []
+      }
+    }
+
+    if (saved.view) {
+      state.view = {
+        layout: saved.view.layout === 'list' ? 'list' : 'grid',
+        columns: Math.min(8, Math.max(3, Number(saved.view.columns) || 4)),
+        gap: Math.min(48, Math.max(0, Number(saved.view.gap) || 0)),
+        showMeta: saved.view.showMeta !== false
+      }
+    }
+
+    const deleted = new Set(state.deletedIds)
+    state.images = state.images.filter((image) => !deleted.has(image.id))
 
     const overrides = new Map(
-      (saved.images ?? []).map((image) => [image.id, image])
+      (saved.images ?? [])
+        .filter((image) => !deleted.has(image.id))
+        .map((image) => [image.id, image])
     )
 
     state.images = state.images.map((image) => {
@@ -438,7 +617,7 @@ export async function initStore() {
     })
 
     const uploadEntries = (saved.images ?? []).filter(
-      (image) => image.origin === 'upload'
+      (image) => image.origin === 'upload' && !deleted.has(image.id)
     )
 
     if (uploadEntries.length > 0) {

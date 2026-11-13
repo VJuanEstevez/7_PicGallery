@@ -19,6 +19,7 @@ export const seedImages = [
     bytes: 802808,
     folderId: 'paintings',
     favorite: true,
+    tags: ['barroco', 'mitología', 'fresco'],
     createdAt: '2026-11-12T09:20:00.000Z'
   },
   {
@@ -31,6 +32,7 @@ export const seedImages = [
     height: 427,
     bytes: 54666,
     folderId: 'abstract',
+    tags: ['abstracto', 'óleo', 'jardín'],
     createdAt: '2026-11-11T16:10:00.000Z'
   },
   {
@@ -43,6 +45,7 @@ export const seedImages = [
     height: 1920,
     bytes: 250090,
     folderId: 'automotive',
+    tags: ['coche', 'urbano', 'amarillo'],
     createdAt: '2026-11-11T11:40:00.000Z'
   },
   {
@@ -56,6 +59,7 @@ export const seedImages = [
     bytes: 881303,
     folderId: 'paintings',
     favorite: true,
+    tags: ['bodegón', 'flores', 'clásico'],
     createdAt: '2026-11-10T18:05:00.000Z'
   },
   {
@@ -68,6 +72,7 @@ export const seedImages = [
     height: 399,
     bytes: 67390,
     folderId: 'abstract',
+    tags: ['abstracto', 'geometría', 'color'],
     createdAt: '2026-11-10T10:30:00.000Z'
   },
   {
@@ -81,6 +86,7 @@ export const seedImages = [
     height: 853,
     bytes: 199984,
     folderId: 'automotive',
+    tags: ['coche', 'urbano', 'amarillo'],
     createdAt: '2026-11-09T15:15:00.000Z'
   },
   {
@@ -93,6 +99,7 @@ export const seedImages = [
     height: 427,
     bytes: 76418,
     folderId: 'nature',
+    tags: ['paisaje', 'bosque', 'otoño'],
     createdAt: '2026-11-09T09:05:00.000Z'
   },
   {
@@ -105,6 +112,7 @@ export const seedImages = [
     height: 425,
     bytes: 59170,
     folderId: 'abstract',
+    tags: ['abstracto', 'óleo', 'cálido'],
     createdAt: '2026-11-08T17:45:00.000Z'
   },
   {
@@ -117,6 +125,7 @@ export const seedImages = [
     height: 517,
     bytes: 126854,
     folderId: 'paintings',
+    tags: ['paisaje', 'rural', 'clásico'],
     createdAt: '2026-11-07T12:20:00.000Z'
   },
   {
@@ -131,6 +140,7 @@ export const seedImages = [
     bytes: 203285,
     folderId: 'automotive',
     favorite: true,
+    tags: ['coche', 'urbano', 'azul'],
     createdAt: '2026-11-06T16:55:00.000Z'
   },
   {
@@ -143,6 +153,7 @@ export const seedImages = [
     height: 505,
     bytes: 469771,
     folderId: 'paintings',
+    tags: ['bodegón', 'frutas', 'clásico'],
     createdAt: '2026-11-05T10:10:00.000Z'
   },
   {
@@ -155,6 +166,7 @@ export const seedImages = [
     height: 480,
     bytes: 68516,
     folderId: 'abstract',
+    tags: ['abstracto', 'gesto', 'color'],
     createdAt: '2026-11-04T14:35:00.000Z'
   },
   {
@@ -167,6 +179,7 @@ export const seedImages = [
     height: 434,
     bytes: 181672,
     folderId: 'textile',
+    tags: ['textil', 'patrón', 'floral'],
     createdAt: '2026-11-03T09:50:00.000Z'
   },
   {
@@ -179,6 +192,7 @@ export const seedImages = [
     height: 487,
     bytes: 97313,
     folderId: 'paintings',
+    tags: ['paisaje', 'montaña', 'niebla'],
     createdAt: '2026-11-02T18:25:00.000Z'
   },
   {
@@ -192,6 +206,7 @@ export const seedImages = [
     bytes: 101562,
     folderId: 'abstract',
     favorite: true,
+    tags: ['abstracto', 'óleo', 'azul'],
     createdAt: '2026-11-01T11:15:00.000Z'
   },
   {
@@ -204,6 +219,7 @@ export const seedImages = [
     height: 465,
     bytes: 68394,
     folderId: 'paintings',
+    tags: ['urbano', 'acuarela', 'clásico'],
     createdAt: '2026-10-30T15:40:00.000Z'
   },
   {
@@ -216,6 +232,7 @@ export const seedImages = [
     height: 440,
     bytes: 60577,
     folderId: 'paintings',
+    tags: ['paisaje', 'montaña', 'otoño'],
     createdAt: '2026-10-28T09:30:00.000Z'
   },
   {
@@ -228,6 +245,7 @@ export const seedImages = [
     height: 360,
     bytes: 55113,
     folderId: 'paintings',
+    tags: ['mitología', 'clásico', 'nubes'],
     createdAt: '2026-10-25T17:05:00.000Z'
   }
 ]

@@ -117,6 +117,13 @@ export function renderInspector(root) {
       <i style="--dot: ${escapeHtml(folderColor)}" aria-hidden="true"></i>
       ${escapeHtml(folderName)}
     </p>
+    ${
+      image.tags?.length
+        ? `<ul class="tag-chips" aria-label="Etiquetas de la imagen">
+            ${image.tags.map((tag) => `<li>${escapeHtml(tag)}</li>`).join('')}
+          </ul>`
+        : ''
+    }
 
     <div class="inspector__actions">
       <button class="btn btn--dark btn--sm" type="button" data-action="open-image" data-id="${escapeHtml(image.id)}">
@@ -130,12 +137,32 @@ export function renderInspector(root) {
       <button
         class="icon-btn icon-btn--bare"
         type="button"
+        data-action="rename-image"
+        data-id="${escapeHtml(image.id)}"
+        aria-label="Cambiar el nombre de ${title}"
+        title="Cambiar nombre"
+      >
+        <svg class="icon" aria-hidden="true"><use href="#icon-pencil"></use></svg>
+      </button>
+      <button
+        class="icon-btn icon-btn--bare"
+        type="button"
         data-action="download"
         data-id="${escapeHtml(image.id)}"
         aria-label="Descargar ${title}"
         title="Descargar"
       >
         <svg class="icon" aria-hidden="true"><use href="#icon-download"></use></svg>
+      </button>
+      <button
+        class="icon-btn icon-btn--bare icon-btn--danger"
+        type="button"
+        data-action="delete-image"
+        data-id="${escapeHtml(image.id)}"
+        aria-label="Eliminar ${title}"
+        title="Eliminar imagen"
+      >
+        <svg class="icon" aria-hidden="true"><use href="#icon-trash"></use></svg>
       </button>
     </div>
 
@@ -164,7 +191,7 @@ export function renderInspector(root) {
 
     <section class="palette" aria-labelledby="palette-title">
       <div class="palette__head">
-        <h3 class="palette__title" id="palette-title">Paleta extraída</h3>
+        <h3 class="palette__title" id="palette-title">Paleta extraída · HEX</h3>
         ${
           image.palette
             ? `<button class="text-btn" type="button" data-action="copy-palette" data-id="${escapeHtml(image.id)}">Copiar paleta</button>`
@@ -172,6 +199,7 @@ export function renderInspector(root) {
         }
       </div>
       ${paletteTemplate(image)}
+      <p class="palette__hint">Haz clic en un color para copiar su código HEX.</p>
     </section>
   `
 }
