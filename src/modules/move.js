@@ -54,6 +54,7 @@ function renderMoveDialog() {
           data-action="close-dialog"
           data-dialog="move-dialog"
           aria-label="Cerrar"
+          data-tooltip="Cerrar"
         >
           <svg class="icon" aria-hidden="true"><use href="#icon-close"></use></svg>
         </button>
@@ -72,10 +73,17 @@ function renderMoveDialog() {
           type="button"
           data-action="close-dialog"
           data-dialog="move-dialog"
+          data-tooltip="Cancelar el movimiento"
         >
           Cancelar
         </button>
-        <button class="btn btn--primary" type="submit">Mover aquí</button>
+        <button
+          class="btn btn--primary"
+          type="submit"
+          data-tooltip="Mover las imágenes seleccionadas"
+        >
+          Mover aquí
+        </button>
       </footer>
     </form>
   `

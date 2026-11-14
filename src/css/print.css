@@ -1,5 +1,16 @@
 /* ---------- Export dialog ---------- */
 
+.dialog__head-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: none;
+}
+
+.export__options-toggle {
+  display: none;
+}
+
 .export__body {
   display: grid;
   grid-template-columns: 18.5rem minmax(0, 1fr);
@@ -402,14 +413,23 @@
 }
 
 @media (max-width: 900px) {
-  .export__body {
-    grid-template-columns: 1fr;
-    overflow-y: auto;
+  .export__options-toggle {
+    display: inline-flex;
   }
 
   .export__settings {
+    display: none;
     border-right: 0;
     border-bottom: 1px solid var(--line);
+  }
+
+  .dialog.is-settings-open .export__settings {
+    display: block;
+  }
+
+  .export__body {
+    grid-template-columns: 1fr;
+    overflow-y: auto;
   }
 
   .export__preview-wrap {

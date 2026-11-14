@@ -24,7 +24,7 @@ export function renderToolbar(root) {
   const isList = layout === 'list'
 
   root.innerHTML = `
-    <div class="toolbar__group">
+    <div class="toolbar__group toolbar__group--view">
       <span class="toolbar__label">Vista</span>
       <div class="toolbar__view">
         <div class="segmented segmented--icons" role="group" aria-label="Modo de vista">
@@ -35,7 +35,7 @@ export function renderToolbar(root) {
             data-layout="grid"
             data-focus-key="layout-grid"
             aria-pressed="${!isList}"
-            title="Cuadrícula"
+            data-tooltip="Ver en cuadrícula"
           >
             <svg class="icon" aria-hidden="true"><use href="#icon-grid"></use></svg>
             <span class="visually-hidden">Cuadrícula</span>
@@ -47,14 +47,12 @@ export function renderToolbar(root) {
             data-layout="list"
             data-focus-key="layout-list"
             aria-pressed="${isList}"
-            title="Lista"
+            data-tooltip="Ver en lista"
           >
             <svg class="icon" aria-hidden="true"><use href="#icon-list"></use></svg>
             <span class="visually-hidden">Lista</span>
           </button>
         </div>
-
-
 
         <label class="toolbar__range">
           <span>Columnas</span>
@@ -88,6 +86,21 @@ export function renderToolbar(root) {
       </div>
     </div>
 
+    <div class="toolbar__group toolbar__group--display">
+      <span class="toolbar__label">Datos de las imágenes</span>
+      <div class="toolbar__checks">
+        <label class="toolbar__check">
+          <input
+            type="checkbox"
+            data-view-meta
+            data-focus-key="toolbar-view-meta"
+            ${state.view.showMeta ? 'checked' : ''}
+          />
+          Mostrar nombre y datos
+        </label>
+      </div>
+    </div>
+
     <div class="toolbar__end">
       <span class="toolbar__count">${formatNumber(visible.length)} de ${formatNumber(state.images.length)}</span>
       <button
@@ -95,6 +108,11 @@ export function renderToolbar(root) {
         type="button"
         data-action="select-all"
         data-focus-key="select-all"
+        data-tooltip="${
+          allSelected
+            ? 'Deseleccionar todas las imágenes visibles'
+            : 'Seleccionar todas las imágenes visibles'
+        }"
         ${visible.length === 0 ? 'disabled' : ''}
       >
         ${allSelected ? 'Quitar selección' : 'Seleccionar todo'}
@@ -104,6 +122,7 @@ export function renderToolbar(root) {
         type="button"
         data-action="clear-filters"
         data-focus-key="clear-filters"
+        data-tooltip="Quitar todos los filtros activos"
         ${filtersActive ? '' : 'disabled'}
       >
         Limpiar filtros
@@ -114,6 +133,7 @@ export function renderToolbar(root) {
         data-action="delete-all-images"
         data-focus-key="delete-all-images"
         aria-label="Eliminar todas las imágenes de la biblioteca"
+        data-tooltip="Eliminar todas las imágenes"
         ${state.images.length === 0 ? 'disabled' : ''}
       >
         Eliminar todas
@@ -163,6 +183,10 @@ export function updateToolbarView() {
 
   document.querySelectorAll('[data-view-gap]').forEach((input) => {
     if (input.value !== String(gap)) input.value = String(gap)
+  })
+
+  document.querySelectorAll('[data-view-meta]').forEach((input) => {
+    if (input.checked !== state.view.showMeta) input.checked = state.view.showMeta
   })
 
   document.querySelectorAll('[data-output="columns"]').forEach((output) => {

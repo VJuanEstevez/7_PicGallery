@@ -47,7 +47,7 @@ import { renderBulkBar } from './modules/ui/bulk.js'
 import { initDragDrop } from './modules/dragdrop.js'
 import { initUpload, openUploadDialog, pickFiles } from './modules/upload.js'
 import { openMoveDialog } from './modules/move.js'
-import { openRenameDialog } from './modules/rename.js'
+import { openFolderRenameDialog, openRenameDialog } from './modules/rename.js'
 import {
   closeLightbox,
   goToLightbox,
@@ -57,7 +57,12 @@ import {
   openLightbox,
   syncLightbox
 } from './modules/lightbox.js'
-import { initExport, openExportDialog, printPresentation } from './modules/export.js'
+import {
+  initExport,
+  openExportDialog,
+  printPresentation,
+  toggleExportSettings
+} from './modules/export.js'
 import { extractPaletteFromSource } from './modules/palette.js'
 import { toast } from './modules/toast.js'
 import { copyText, downloadImage } from './modules/utils.js'
@@ -114,8 +119,10 @@ function applyUiState(state) {
 
   app.classList.toggle('is-sidebar-open', state.sidebarOpen)
   app.classList.toggle('is-sidebar-collapsed', !mobile && state.sidebarCollapsed)
-  app.classList.toggle('is-inspector-closed', !state.inspectorOpen)
-  app.classList.toggle('is-inspector-drawer-open', state.inspectorDrawer)
+  app.classList.toggle(
+    'is-inspector-open',
+    narrow ? state.inspectorDrawer : state.inspectorOpen
+  )
 
   const scrimVisible =
     (mobile && state.sidebarOpen) || (narrow && state.inspectorDrawer)
@@ -127,6 +134,7 @@ function applyUiState(state) {
   if (sidebarButton) {
     const expanded = mobile ? state.sidebarOpen : !state.sidebarCollapsed
     sidebarButton.setAttribute('aria-expanded', String(expanded))
+    sidebarButton.setAttribute('data-tooltip', expanded ? 'Ocultar el menú' : 'Mostrar el menú')
     sidebarButton.setAttribute(
       'aria-label',
       mobile
@@ -143,6 +151,10 @@ function applyUiState(state) {
   if (inspectorButton) {
     const expanded = narrow ? state.inspectorDrawer : state.inspectorOpen
     inspectorButton.setAttribute('aria-expanded', String(expanded))
+    inspectorButton.setAttribute(
+      'data-tooltip',
+      expanded ? 'Ocultar ficha técnica' : 'Mostrar ficha técnica'
+    )
     inspectorButton.setAttribute(
       'aria-label',
       expanded ? 'Ocultar ficha técnica' : 'Mostrar ficha técnica'
@@ -321,7 +333,7 @@ function startFolderCreate() {
       aria-label="Nombre de la nueva carpeta"
       autocomplete="off"
     />
-    <button type="submit" aria-label="Crear carpeta">
+    <button type="submit" aria-label="Crear carpeta" data-tooltip="Crear carpeta">
       <svg class="icon" aria-hidden="true"><use href="#icon-check"></use></svg>
     </button>
   `
@@ -431,6 +443,10 @@ function setupListeners() {
         openExportDialog()
         break
 
+      case 'toggle-export-settings':
+        toggleExportSettings(target)
+        break
+
       case 'export-print':
         await printPresentation()
         break
@@ -441,6 +457,10 @@ function setupListeners() {
 
       case 'rename-image':
         openRenameDialog(target.dataset.id)
+        break
+
+      case 'rename-folder':
+        openFolderRenameDialog(target.dataset.folder)
         break
 
       case 'view-layout':

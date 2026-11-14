@@ -6,6 +6,8 @@ import {
 } from '../store.js'
 import { escapeHtml, formatBytes, formatDate } from '../utils.js'
 
+let dataSectionOpen = true
+
 function paletteTemplate(image) {
   if (!Array.isArray(image.palette) || image.palette.length === 0) {
     return `<p class="palette__empty">Extrayendo la paleta de la imagen…</p>`
@@ -23,7 +25,7 @@ function paletteTemplate(image) {
               data-hex="${escapeHtml(hex)}"
               data-focus-key="swatch-${escapeHtml(image.id)}-${index}"
               aria-label="Copiar el color ${escapeHtml(hex)}"
-              title="Copiar ${escapeHtml(hex)}"
+              data-tooltip="Copiar ${escapeHtml(hex)}"
             >
               <span class="swatch__color" style="--hex: ${escapeHtml(hex)}"></span>
               <span class="swatch__hex">${escapeHtml(hex)}</span>
@@ -36,6 +38,9 @@ function paletteTemplate(image) {
 }
 
 export function renderInspector(root) {
+  const previousSection = root.querySelector('.inspector__data')
+  if (previousSection) dataSectionOpen = previousSection.open
+
   const state = getState()
   const image = getActiveImage(state)
 
@@ -48,6 +53,7 @@ export function renderInspector(root) {
           type="button"
           data-action="close-inspector"
           aria-label="Cerrar ficha técnica"
+          data-tooltip="Cerrar ficha técnica"
         >
           <svg class="icon" aria-hidden="true"><use href="#icon-close"></use></svg>
         </button>
@@ -80,6 +86,7 @@ export function renderInspector(root) {
         type="button"
         data-action="close-inspector"
         aria-label="Cerrar ficha técnica"
+        data-tooltip="Cerrar ficha técnica"
       >
         <svg class="icon" aria-hidden="true"><use href="#icon-close"></use></svg>
       </button>
@@ -93,6 +100,7 @@ export function renderInspector(root) {
         data-action="open-image"
         data-id="${escapeHtml(image.id)}"
         aria-label="Abrir ${title} en el visor"
+        data-tooltip="Abrir en el visor"
       >
         <img src="${escapeHtml(image.src)}" alt="${title}" />
       </button>
@@ -107,6 +115,9 @@ export function renderInspector(root) {
         data-focus-key="inspector-fav"
         aria-pressed="${favorite}"
         aria-label="${favorite ? `Quitar ${title} de favoritos` : `Añadir ${title} a favoritos`}"
+        data-tooltip="${
+          favorite ? 'Quitar de favoritos' : 'Añadir a favoritos'
+        }"
       >
         <svg class="icon" aria-hidden="true"><use href="#icon-heart"></use></svg>
       </button>
@@ -126,11 +137,23 @@ export function renderInspector(root) {
     }
 
     <div class="inspector__actions">
-      <button class="btn btn--dark btn--sm" type="button" data-action="open-image" data-id="${escapeHtml(image.id)}">
+      <button
+        class="btn btn--dark btn--sm"
+        type="button"
+        data-action="open-image"
+        data-id="${escapeHtml(image.id)}"
+        data-tooltip="Ver la imagen a pantalla completa"
+      >
         <svg class="icon" aria-hidden="true"><use href="#icon-arrow-up-right"></use></svg>
         Ver en grande
       </button>
-      <button class="btn btn--ghost btn--sm" type="button" data-action="open-move" data-id="${escapeHtml(image.id)}">
+      <button
+        class="btn btn--ghost btn--sm"
+        type="button"
+        data-action="open-move"
+        data-id="${escapeHtml(image.id)}"
+        data-tooltip="Mover la imagen a otra carpeta"
+      >
         <svg class="icon" aria-hidden="true"><use href="#icon-move"></use></svg>
         Mover
       </button>
@@ -140,7 +163,7 @@ export function renderInspector(root) {
         data-action="rename-image"
         data-id="${escapeHtml(image.id)}"
         aria-label="Cambiar el nombre de ${title}"
-        title="Cambiar nombre"
+        data-tooltip="Cambiar nombre"
       >
         <svg class="icon" aria-hidden="true"><use href="#icon-pencil"></use></svg>
       </button>
@@ -150,7 +173,7 @@ export function renderInspector(root) {
         data-action="download"
         data-id="${escapeHtml(image.id)}"
         aria-label="Descargar ${title}"
-        title="Descargar"
+        data-tooltip="Descargar"
       >
         <svg class="icon" aria-hidden="true"><use href="#icon-download"></use></svg>
       </button>
@@ -160,41 +183,49 @@ export function renderInspector(root) {
         data-action="delete-image"
         data-id="${escapeHtml(image.id)}"
         aria-label="Eliminar ${title}"
-        title="Eliminar imagen"
+        data-tooltip="Eliminar imagen"
       >
         <svg class="icon" aria-hidden="true"><use href="#icon-trash"></use></svg>
       </button>
     </div>
 
-    <dl class="meta-list">
-      <div class="meta-row">
-        <dt>Dimensiones</dt>
-        <dd>${image.width} × ${image.height} px</dd>
-      </div>
-      <div class="meta-row">
-        <dt>Peso</dt>
-        <dd>${formatBytes(image.bytes)}</dd>
-      </div>
-      <div class="meta-row">
-        <dt>Formato</dt>
-        <dd>${escapeHtml(image.format)}${formatNote ? `<small>${formatNote}</small>` : ''}</dd>
-      </div>
-      <div class="meta-row">
-        <dt>Carpeta</dt>
-        <dd>${escapeHtml(folderName)}</dd>
-      </div>
-      <div class="meta-row">
-        <dt>Añadida</dt>
-        <dd>${formatDate(image.createdAt)}</dd>
-      </div>
-    </dl>
+    <details class="inspector__data" ${dataSectionOpen ? 'open' : ''}>
+      <summary class="inspector__summary">
+        <span>Datos técnicos</span>
+        <svg class="icon inspector__chevron" aria-hidden="true">
+          <use href="#icon-chevron-right"></use>
+        </svg>
+      </summary>
+      <dl class="meta-list">
+        <div class="meta-row">
+          <dt>Dimensiones</dt>
+          <dd>${image.width} × ${image.height} px</dd>
+        </div>
+        <div class="meta-row">
+          <dt>Peso</dt>
+          <dd>${formatBytes(image.bytes)}</dd>
+        </div>
+        <div class="meta-row">
+          <dt>Formato</dt>
+          <dd>${escapeHtml(image.format)}${formatNote ? `<small>${formatNote}</small>` : ''}</dd>
+        </div>
+        <div class="meta-row">
+          <dt>Carpeta</dt>
+          <dd>${escapeHtml(folderName)}</dd>
+        </div>
+        <div class="meta-row">
+          <dt>Añadida</dt>
+          <dd>${formatDate(image.createdAt)}</dd>
+        </div>
+      </dl>
+    </details>
 
     <section class="palette" aria-labelledby="palette-title">
       <div class="palette__head">
         <h3 class="palette__title" id="palette-title">Paleta extraída · HEX</h3>
         ${
           image.palette
-            ? `<button class="text-btn" type="button" data-action="copy-palette" data-id="${escapeHtml(image.id)}">Copiar paleta</button>`
+            ? `<button class="text-btn" type="button" data-action="copy-palette" data-id="${escapeHtml(image.id)}" data-tooltip="Copiar todos los colores de la paleta">Copiar paleta</button>`
             : ''
         }
       </div>

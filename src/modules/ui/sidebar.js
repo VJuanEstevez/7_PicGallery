@@ -1,18 +1,10 @@
 import {
   getCounts,
-  getFormatBreakdown,
   getState,
   getTags,
   getTotalBytes
 } from '../store.js'
 import { escapeHtml, formatBytes, formatNumber } from '../utils.js'
-
-const FORMAT_COLORS = {
-  JPG: 'var(--format-jpg)',
-  PNG: 'var(--format-png)',
-  WEBP: 'var(--format-webp)',
-  RAW: 'var(--format-raw)'
-}
 
 const COLOR_FILTERS = [
   { id: 'red', label: 'Rojos', color: '#d93a2b' },
@@ -32,11 +24,16 @@ const sectionState = {
   folders: true,
   filters: true,
   view: false,
-  tags: false,
-  stats: false
+  tags: false
 }
 
 const sectionTouched = new Set()
+
+/* The label is visible while the sidebar is expanded; collapsed, only the icon
+   remains, so the summary carries its own tooltip and accessible name. */
+function summaryAttributes(label) {
+  return `aria-label="${label}" data-tooltip="${label}"`
+}
 
 function summaryTemplate(icon, label, extra = '') {
   return `
@@ -67,6 +64,11 @@ function navItem(state, id, label, icon, count) {
       data-action="folder"
       data-folder="${id}"
       data-focus-key="folder-${id}"
+      data-tooltip="${
+        id === 'all'
+          ? 'Ver toda la biblioteca'
+          : 'Ver solo las imágenes marcadas como favoritas'
+      }"
       ${active ? 'aria-current="page"' : ''}
     >
       <svg class="icon" aria-hidden="true"><use href="#icon-${icon}"></use></svg>
@@ -90,12 +92,24 @@ function folderItem(state, folder, count) {
         data-folder="${escapeHtml(folder.id)}"
         data-drop-folder="${escapeHtml(folder.id)}"
         data-focus-key="folder-${escapeHtml(folder.id)}"
+        data-tooltip="Abrir la carpeta ${name}"
         style="--dot: ${escapeHtml(folder.color)}"
         ${active ? 'aria-current="page"' : ''}
       >
         <span class="folder-item__dot" aria-hidden="true"></span>
         <span class="folder-item__name">${name}</span>
         <span class="folder-item__count mono">${formatNumber(count)}</span>
+      </button>
+      <button
+        class="folder-rename"
+        type="button"
+        data-action="rename-folder"
+        data-folder="${escapeHtml(folder.id)}"
+        data-focus-key="rename-folder-${escapeHtml(folder.id)}"
+        aria-label="Renombrar la carpeta ${name}"
+        data-tooltip="Renombrar carpeta"
+      >
+        <svg class="icon" aria-hidden="true"><use href="#icon-pencil"></use></svg>
       </button>
       ${
         deletable
@@ -107,7 +121,7 @@ function folderItem(state, folder, count) {
               data-folder="${escapeHtml(folder.id)}"
               data-focus-key="delete-folder-${escapeHtml(folder.id)}"
               aria-label="Eliminar la carpeta ${name}"
-              title="Eliminar carpeta"
+              data-tooltip="Eliminar carpeta"
             >
               <svg class="icon" aria-hidden="true"><use href="#icon-trash"></use></svg>
             </button>
@@ -128,6 +142,7 @@ function colorFilterTemplate(state) {
         data-action="toggle-color"
         data-color="${filter.id}"
         data-focus-key="color-${filter.id}"
+        data-tooltip="Filtrar por color ${filter.label.toLowerCase()}"
         aria-pressed="${active.includes(filter.id)}"
       >
         <span class="chip__dot" style="--dot: ${filter.color}" aria-hidden="true"></span>
@@ -144,6 +159,11 @@ function colorFilterTemplate(state) {
         data-action="toggle-color"
         data-color="all"
         data-focus-key="color-all"
+        data-tooltip="${
+          active.length > 0
+            ? 'Quitar el filtro de color'
+            : 'Ver todas las imágenes'
+        }"
         aria-pressed="${active.length === 0}"
       >
         <span class="chip__dot chip__dot--all" aria-hidden="true"></span>
@@ -166,6 +186,11 @@ function formatFilterTemplate(state, counts) {
             data-action="toggle-format"
             data-format="${format}"
             data-focus-key="format-${format}"
+            data-tooltip="${
+              active
+                ? `Quitar el filtro por formato ${format}`
+                : `Filtrar por formato ${format}`
+            }"
             aria-pressed="${active}"
           >
             ${format} <span class="mono">${formatNumber(counts.formats[format] ?? 0)}</span>
@@ -187,7 +212,7 @@ function tagsTemplate(state) {
 
   return `
     <details class="sidebar__section sidebar__section--nested" data-section="tags" ${open ? 'open' : ''}>
-      <summary class="sidebar__summary sidebar__summary--nested">
+      <summary class="sidebar__summary sidebar__summary--nested" ${summaryAttributes('Etiquetas')}>
         ${summaryTemplate(
           'tag',
           'Etiquetas',
@@ -205,6 +230,11 @@ function tagsTemplate(state) {
                   data-action="toggle-tag"
                   data-tag="${escapeHtml(tag)}"
                   data-focus-key="tag-${escapeHtml(tag)}"
+                  data-tooltip="${
+                    active.includes(tag)
+                      ? 'Quitar el filtro por esta etiqueta'
+                      : 'Filtrar por esta etiqueta'
+                  }"
                   aria-pressed="${active.includes(tag)}"
                 >
                   ${escapeHtml(tag)}
@@ -224,7 +254,7 @@ function viewTemplate(state) {
 
   return `
     <details class="sidebar__section" data-section="view" ${openAttribute('view')}>
-      <summary class="sidebar__summary">
+      <summary class="sidebar__summary" ${summaryAttributes('Vista')}>
         ${summaryTemplate('layout', 'Vista')}
       </summary>
       <div class="sidebar__section-body">
@@ -290,7 +320,6 @@ export function renderSidebar(root) {
   const state = getState()
   const counts = getCounts(state)
   const totalBytes = getTotalBytes(state.images)
-  const breakdown = getFormatBreakdown(state.images)
 
   const filtersActive =
     state.filters.query.trim() !== '' ||
@@ -302,30 +331,6 @@ export function renderSidebar(root) {
     state.filters.colors.length +
     state.filters.formats.length +
     state.filters.tags.length
-
-  const formatBar = breakdown
-    .filter((entry) => entry.count > 0)
-    .map(
-      (entry) => `
-        <span
-          style="--mix-color: ${FORMAT_COLORS[entry.format]}; flex: ${entry.count}"
-          title="${entry.format}: ${formatNumber(entry.count)}"
-        ></span>
-      `
-    )
-    .join('')
-
-  const formatLegend = breakdown
-    .map(
-      (entry) => `
-        <li style="--mix-color: ${FORMAT_COLORS[entry.format]}">
-          <i aria-hidden="true"></i>
-          <span>${entry.format}</span>
-          <span class="mono">${formatNumber(entry.count)}</span>
-        </li>
-      `
-    )
-    .join('')
 
   const folders = state.folders
     .map((folder) => folderItem(state, folder, counts.folders[folder.id] ?? 0))
@@ -342,14 +347,14 @@ export function renderSidebar(root) {
         type="button"
         data-action="close-sidebar"
         aria-label="Cerrar menú de navegación"
-        title="Cerrar menú"
+        data-tooltip="Cerrar menú"
       >
         <svg class="icon" aria-hidden="true"><use href="#icon-close"></use></svg>
       </button>
     </div>
 
     <details class="sidebar__section" data-section="library" ${openAttribute('library')}>
-      <summary class="sidebar__summary">
+      <summary class="sidebar__summary" ${summaryAttributes('Biblioteca')}>
         ${summaryTemplate(
           'grid',
           'Biblioteca',
@@ -365,7 +370,7 @@ export function renderSidebar(root) {
     </details>
 
     <details class="sidebar__section" data-section="folders" ${openAttribute('folders')}>
-      <summary class="sidebar__summary">
+      <summary class="sidebar__summary" ${summaryAttributes('Carpetas')}>
         ${summaryTemplate('folder', 'Carpetas')}
       </summary>
       <div class="sidebar__section-body">
@@ -376,7 +381,7 @@ export function renderSidebar(root) {
             type="button"
             data-action="new-folder"
             aria-label="Crear carpeta"
-            title="Crear carpeta"
+            data-tooltip="Crear carpeta"
           >
             <svg class="icon" aria-hidden="true"><use href="#icon-plus"></use></svg>
           </button>
@@ -387,7 +392,7 @@ export function renderSidebar(root) {
     </details>
 
     <details class="sidebar__section" data-section="filters" ${openAttribute('filters')}>
-      <summary class="sidebar__summary">
+      <summary class="sidebar__summary" ${summaryAttributes('Filtros')}>
         ${summaryTemplate(
           'sliders',
           'Filtros',
@@ -404,6 +409,7 @@ export function renderSidebar(root) {
             type="button"
             data-action="clear-filters"
             data-focus-key="sidebar-clear-filters"
+            data-tooltip="Quitar todos los filtros activos"
             ${filtersActive ? '' : 'disabled'}
           >
             Limpiar
@@ -423,32 +429,12 @@ export function renderSidebar(root) {
     ${viewTemplate(state)}
 
     <div class="sidebar__foot">
-      <details class="sidebar__section sidebar__section--foot" data-section="stats" ${openAttribute('stats')}>
-        <summary class="sidebar__summary">
-          ${summaryTemplate('palette', 'Composición')}
-        </summary>
-        <div class="sidebar__section-body">
-          <div class="format-mix">
-            <div class="format-mix__head">
-              <span class="sidebar__label">Composición</span>
-              <span class="mono">${formatNumber(counts.total)}</span>
-            </div>
-            <div
-              class="format-mix__bar"
-              role="img"
-              aria-label="Distribución de formatos de la biblioteca"
-            >${formatBar}</div>
-            <ul class="format-mix__legend">${formatLegend}</ul>
-          </div>
-        </div>
-      </details>
-
       <button
         class="sidebar__export"
         type="button"
         data-action="open-export"
         data-focus-key="sidebar-export"
-        title="Exportar colección"
+        data-tooltip="Exportar la colección"
       >
         <svg class="icon" aria-hidden="true"><use href="#icon-download"></use></svg>
         <span>Exportar colección</span>

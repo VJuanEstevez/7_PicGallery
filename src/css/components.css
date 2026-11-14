@@ -669,6 +669,46 @@ body.is-dragging-cards {
     flex: 1;
   }
 }
+.inspector__data {
+  border-top: 1px solid var(--line);
+}
+.inspector__summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.75rem 0.1rem;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  font-weight: 500;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+  cursor: pointer;
+  list-style: none;
+  transition: color var(--speed) var(--ease);
+  &:hover {
+    color: var(--text);
+  }
+  &::-webkit-details-marker {
+    display: none;
+  }
+  &::marker {
+    content: "";
+  }
+}
+.inspector__chevron {
+  width: 0.85rem;
+  height: 0.85rem;
+  color: var(--text-faint);
+  transition: transform var(--speed) var(--ease);
+}
+.inspector__data[open] > .inspector__summary .inspector__chevron {
+  transform: rotate(90deg);
+}
+.inspector__data .meta-list {
+  border-top: 0;
+}
 .meta-list {
   display: flex;
   flex-direction: column;
@@ -726,7 +766,6 @@ body.is-dragging-cards {
 .swatch {
   min-width: 0;
   padding: 0;
-  overflow: hidden;
   border: 1px solid var(--line);
   border-radius: var(--radius-xs);
   background: var(--white);
@@ -741,12 +780,14 @@ body.is-dragging-cards {
   .swatch__color {
     display: block;
     height: 2.15rem;
+    border-radius: calc(var(--radius-xs) - 1px) calc(var(--radius-xs) - 1px) 0 0;
     background: var(--hex);
   }
   .swatch__hex {
     display: block;
     padding: 0.28rem 0.35rem;
     overflow: hidden;
+    border-radius: 0 0 calc(var(--radius-xs) - 1px) calc(var(--radius-xs) - 1px);
     font-family: var(--font-mono);
     font-size: 0.54rem;
     color: var(--text-soft);
@@ -1150,4 +1191,139 @@ body.is-dragging-cards {
       color: #b9bcc2;
     }
   }
+}
+
+/* ---------- Tooltips ---------- */
+/* The trigger is the tooltip's containing block, except for the buttons that
+   are already positioned on their own. The exclusions sit in :where() so the
+   context rules below can still take the trigger out of the flow. */
+[data-tooltip]:where(
+  :not(.card__fav):not(.card__rename):not(.card__delete):not(.inspector__fav):not(.lightbox__nav)
+) {
+  position: relative;
+}
+[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  left: 50%;
+  z-index: 90;
+  width: max-content;
+  max-width: 13rem;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  border-radius: var(--radius-xs);
+  background: var(--ink);
+  box-shadow: 0 8px 20px rgb(0 0 0 / 0.25);
+  color: #f4f2ed;
+  font-family: var(--font-sans);
+  font-size: 0.64rem;
+  font-weight: 600;
+  line-height: 1.35;
+  text-align: center;
+  white-space: normal;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(var(--tooltip-x, -50%), var(--tooltip-y, -2px));
+  transition:
+    opacity var(--speed) var(--ease),
+    transform var(--speed) var(--ease);
+}
+[data-tooltip]:hover::after,
+[data-tooltip]:focus-visible::after {
+  opacity: 1;
+  transform: translate(var(--tooltip-x, -50%), var(--tooltip-y-hover, 0px));
+}
+
+/* Buttons anchored to the right edge: the tooltip grows inwards */
+.card__fav[data-tooltip]::after,
+.card__rename[data-tooltip]::after,
+.card__delete[data-tooltip]::after,
+.inspector__fav[data-tooltip]::after,
+.sidebar [data-tooltip]::after,
+.inspector [data-tooltip]::after,
+.topbar__actions [data-tooltip]::after,
+.lightbox__tools [data-tooltip]::after,
+.lightbox__foot [data-tooltip]::after,
+.dialog__head-actions [data-tooltip]::after,
+.dialog__foot [data-tooltip]::after {
+  right: 0;
+  left: auto;
+  --tooltip-x: 0px;
+}
+
+/* Collapsed sidebar: the labels disappear, so the tooltip opens just outside the
+   icon rail (the rail no longer clips its overflow). */
+.app.is-sidebar-collapsed .sidebar [data-tooltip]::after {
+  right: auto;
+  left: calc(100% + 0.6rem);
+  max-width: 13rem;
+  white-space: nowrap;
+  --tooltip-x: 0px;
+}
+
+/* Section summaries: the label is already on screen while expanded, so the
+   tooltip is reserved for the collapsed icon rail. */
+.sidebar__summary[data-tooltip]::after {
+  content: none;
+}
+.app.is-sidebar-collapsed .sidebar__summary[data-tooltip]::after {
+  content: attr(data-tooltip);
+  top: 50%;
+  bottom: auto;
+  --tooltip-y: calc(-50% - 2px);
+  --tooltip-y-hover: -50%;
+}
+
+/* First inspector action sits at the left edge: open the tooltip outwards */
+.inspector__actions > :first-child[data-tooltip]::after {
+  top: 50%;
+  right: auto;
+  left: 100%;
+  --tooltip-x: 0.45rem;
+  --tooltip-y: calc(-50% - 2px);
+  --tooltip-y-hover: -50%;
+}
+
+/* Wrapped filter groups in the sidebar: anchor the tooltip to the whole group,
+   otherwise it would grow out of the narrow column */
+.sidebar .chips,
+.sidebar .tag-list,
+.sidebar .segmented {
+  position: relative;
+}
+.sidebar .chips [data-tooltip],
+.sidebar .tag-list [data-tooltip],
+.sidebar .segmented [data-tooltip] {
+  position: static;
+}
+
+/* The bulk bar is centred on the viewport: pin the outermost tooltips */
+.bulk [data-tooltip]:first-of-type::after {
+  right: auto;
+  left: 0;
+  --tooltip-x: 0px;
+}
+.bulk [data-tooltip]:last-of-type::after {
+  right: 0;
+  left: auto;
+  --tooltip-x: 0px;
+}
+
+/* Buttons sitting in bottom bars: the tooltip opens upwards */
+.bulk [data-tooltip]::after,
+.dialog__foot [data-tooltip]::after,
+.sidebar__foot [data-tooltip]::after,
+.lightbox__filmstrip [data-tooltip]::after {
+  top: auto;
+  bottom: calc(100% + 0.4rem);
+  --tooltip-y: 2px;
+}
+
+/* Buttons that fill an image frame: keep the tooltip inside the frame */
+.card__open[data-tooltip]::after,
+.inspector__open[data-tooltip]::after {
+  top: auto;
+  bottom: 0.7rem;
+  --tooltip-y: 2px;
 }

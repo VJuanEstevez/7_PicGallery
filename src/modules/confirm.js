@@ -37,10 +37,20 @@ export function confirmAction({
         <p class="confirm__message">${escapeHtml(message)}</p>
       </div>
       <footer class="dialog__foot">
-        <button class="btn btn--ghost" type="submit" value="cancel">
+        <button
+          class="btn btn--ghost"
+          type="submit"
+          value="cancel"
+          data-tooltip="Volver sin ejecutar la acción"
+        >
           ${escapeHtml(cancelLabel)}
         </button>
-        <button class="btn ${danger ? 'btn--danger' : 'btn--primary'}" type="submit" value="confirm">
+        <button
+          class="btn ${danger ? 'btn--danger' : 'btn--primary'}"
+          type="submit"
+          value="confirm"
+          data-tooltip="Confirmar la acción"
+        >
           ${escapeHtml(confirmLabel)}
         </button>
       </footer>

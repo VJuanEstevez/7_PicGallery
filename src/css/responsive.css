@@ -1,34 +1,3 @@
-@media (min-width: 1201px) {
-  .app.is-inspector-closed {
-    grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
-  }
-
-  .app.is-inspector-closed .inspector {
-    display: none;
-  }
-}
-
-@media (max-width: 1200px) {
-  .app {
-    grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
-  }
-
-  .inspector {
-    position: fixed;
-    top: 0;
-    right: 0;
-    z-index: 29;
-    width: min(23rem, 92vw);
-    transform: translateX(100%);
-    box-shadow: var(--shadow-lg);
-    transition: transform var(--speed) var(--ease);
-  }
-
-  .app.is-inspector-drawer-open .inspector {
-    transform: translateX(0);
-  }
-}
-
 @media (max-width: 1024px) {
   .app {
     grid-template-columns: minmax(0, 1fr);
@@ -113,12 +82,16 @@
   }
 
   .toolbar {
-    gap: 0.9rem;
+    gap: 0.9rem 1.1rem;
+  }
+
+  .toolbar__group--display {
+    padding-left: 0;
+    border-left: 0;
   }
 
   .toolbar__end {
     width: 100%;
-    margin-left: 0;
     justify-content: space-between;
   }
 
@@ -236,12 +209,8 @@
     width: 100%;
   }
 
-  .topbar__actions .btn--ghost .btn__label {
-    display: none;
-  }
-
-  .topbar__actions .btn--ghost {
-    padding: 0 0.7rem;
+  .topbar__actions .btn {
+    flex: 1 1 auto;
   }
 
   .gallery-empty {
@@ -284,7 +253,8 @@
     transform: none;
   }
 
-  .folder-delete {
+  .folder-delete,
+  .folder-rename {
     opacity: 1;
   }
 }

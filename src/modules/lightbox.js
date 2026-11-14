@@ -40,6 +40,7 @@ function filmstripTemplate(state) {
           data-action="lightbox-go"
           data-index="${position}"
           aria-label="Ver ${escapeHtml(image.title)}"
+          data-tooltip="${escapeHtml(image.title)}"
           ${position === index ? 'aria-current="true"' : ''}
         >
           <img src="${escapeHtml(image.src)}" alt="" loading="lazy" />
@@ -66,6 +67,7 @@ function buildSkeleton(state) {
             type="button"
             data-action="lightbox-favorite"
             aria-label="Añadir a favoritos"
+            data-tooltip="Añadir a favoritos"
           >
             <svg class="icon" aria-hidden="true"><use href="#icon-heart"></use></svg>
           </button>
@@ -75,6 +77,7 @@ function buildSkeleton(state) {
             type="button"
             data-action="rename-image"
             aria-label="Cambiar nombre"
+            data-tooltip="Cambiar nombre"
           >
             <svg class="icon" aria-hidden="true"><use href="#icon-pencil"></use></svg>
           </button>
@@ -84,6 +87,7 @@ function buildSkeleton(state) {
             type="button"
             data-action="download"
             aria-label="Descargar imagen"
+            data-tooltip="Descargar imagen"
           >
             <svg class="icon" aria-hidden="true"><use href="#icon-download"></use></svg>
           </button>
@@ -93,6 +97,7 @@ function buildSkeleton(state) {
             type="button"
             data-action="delete-image"
             aria-label="Eliminar imagen"
+            data-tooltip="Eliminar imagen"
           >
             <svg class="icon" aria-hidden="true"><use href="#icon-trash"></use></svg>
           </button>
@@ -101,6 +106,7 @@ function buildSkeleton(state) {
             type="button"
             data-action="lightbox-close"
             aria-label="Cerrar visor"
+            data-tooltip="Cerrar visor"
           >
             <svg class="icon" aria-hidden="true"><use href="#icon-close"></use></svg>
           </button>
@@ -114,6 +120,7 @@ function buildSkeleton(state) {
           type="button"
           data-action="lightbox-prev"
           aria-label="Imagen anterior"
+          data-tooltip="Imagen anterior"
         >
           <svg class="icon" aria-hidden="true"><use href="#icon-chevron-left"></use></svg>
         </button>
@@ -122,6 +129,7 @@ function buildSkeleton(state) {
           type="button"
           data-action="lightbox-next"
           aria-label="Imagen siguiente"
+          data-tooltip="Imagen siguiente"
         >
           <svg class="icon" aria-hidden="true"><use href="#icon-chevron-right"></use></svg>
         </button>
@@ -223,7 +231,7 @@ function updateLightbox() {
           data-hex="${escapeHtml(hex)}"
           style="--hex: ${escapeHtml(hex)}"
           aria-label="Copiar el color ${escapeHtml(hex)}"
-          title="Copiar ${escapeHtml(hex)}"
+          data-tooltip="Copiar ${escapeHtml(hex)}"
         ></button>
       `
     )
@@ -233,6 +241,10 @@ function updateLightbox() {
   favorite.setAttribute('aria-pressed', String(Boolean(image.favorite)))
   favorite.setAttribute(
     'aria-label',
+    image.favorite ? 'Quitar de favoritos' : 'Añadir a favoritos'
+  )
+  favorite.setAttribute(
+    'data-tooltip',
     image.favorite ? 'Quitar de favoritos' : 'Añadir a favoritos'
   )
 
@@ -367,7 +379,7 @@ export function syncLightbox() {
             data-hex="${escapeHtml(hex)}"
             style="--hex: ${escapeHtml(hex)}"
             aria-label="Copiar el color ${escapeHtml(hex)}"
-            title="Copiar ${escapeHtml(hex)}"
+            data-tooltip="Copiar ${escapeHtml(hex)}"
           ></button>
         `
       )

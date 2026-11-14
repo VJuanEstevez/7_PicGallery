@@ -56,6 +56,7 @@ function renderUploadDialog() {
           data-action="close-dialog"
           data-dialog="upload-dialog"
           aria-label="Cerrar"
+          data-tooltip="Cerrar"
         >
           <svg class="icon" aria-hidden="true"><use href="#icon-close"></use></svg>
         </button>
@@ -96,10 +97,16 @@ function renderUploadDialog() {
           type="button"
           data-action="close-dialog"
           data-dialog="upload-dialog"
+          data-tooltip="Cerrar sin añadir imágenes"
         >
           Cerrar
         </button>
-        <button class="btn btn--primary" type="button" data-action="pick-files">
+        <button
+          class="btn btn--primary"
+          type="button"
+          data-action="pick-files"
+          data-tooltip="Explorar imágenes en el equipo"
+        >
           <svg class="icon" aria-hidden="true"><use href="#icon-plus"></use></svg>
           Elegir imágenes
         </button>

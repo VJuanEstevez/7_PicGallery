@@ -1,7 +1,7 @@
 
 .app {
   display: grid;
-  grid-template-columns: var(--sidebar-w) minmax(0, 1fr) var(--inspector-w);
+  grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
   min-height: 100dvh;
   background: var(--porcelain);
 }
@@ -10,7 +10,10 @@
 }
 .app.is-sidebar-collapsed .sidebar {
   padding: 1.35rem 0.5rem 1.25rem;
-  overflow-x: hidden;
+  /* The rail still scrolls vertically, but it must not clip the tooltips that
+     open outside its width. */
+  overflow-x: clip;
+  overflow-clip-margin: 15rem;
 }
 .app.is-sidebar-collapsed .brand {
   justify-content: center;
@@ -535,7 +538,8 @@
   background: var(--dot, #8c8a85);
   box-shadow: 0 0 0 3px rgb(255 255 255 / 0.04);
 }
-.folder-delete {
+.folder-delete,
+.folder-rename {
   display: grid;
   place-items: center;
   width: 1.65rem;
@@ -560,8 +564,13 @@
     color: #ff9b8e;
   }
 }
+.folder-rename:hover {
+  color: #ffffff;
+}
 .folder-row:hover .folder-delete,
-.folder-delete:focus-visible {
+.folder-row:hover .folder-rename,
+.folder-delete:focus-visible,
+.folder-rename:focus-visible {
   opacity: 1;
 }
 .folder-create {
@@ -607,56 +616,6 @@
   margin-top: auto;
   padding: 0.9rem 0.65rem 0.15rem;
   border-top: 1px solid var(--ink-line);
-}
-.format-mix {
-  display: flex;
-  flex-direction: column;
-  gap: 0.55rem;
-  .format-mix__head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    .sidebar__label {
-      margin: 0;
-    }
-    .mono {
-      font-size: 0.6rem;
-      color: #7d8188;
-    }
-  }
-  .format-mix__bar {
-    display: flex;
-    height: 0.32rem;
-    overflow: hidden;
-    border-radius: var(--radius-pill);
-    background: var(--ink-line);
-    span {
-      height: 100%;
-      background: var(--mix-color);
-    }
-  }
-  .format-mix__legend {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.3rem 0.6rem;
-    li {
-      display: flex;
-      align-items: center;
-      gap: 0.35rem;
-      font-size: 0.6rem;
-      color: #8e9299;
-    }
-    i {
-      width: 0.36rem;
-      height: 0.36rem;
-      border-radius: 50%;
-      background: var(--mix-color);
-    }
-    .mono {
-      margin-left: auto;
-      color: #7d8188;
-    }
-  }
 }
 .sidebar__stamp {
   font-family: var(--font-mono);
@@ -815,7 +774,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
-  gap: 1rem 1.75rem;
+  gap: 1rem 2.25rem;
   margin-bottom: 1.75rem;
   padding-bottom: 1.15rem;
   border-bottom: 1px solid var(--line);
@@ -823,7 +782,7 @@
 .toolbar__group {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.55rem;
   min-width: 0;
 }
 .toolbar__label {
@@ -833,6 +792,35 @@
   letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--text-faint);
+}
+.toolbar__group--display {
+  padding-left: 2rem;
+  border-left: 1px solid var(--line);
+}
+.toolbar__checks {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 1.1rem;
+}
+.toolbar__check {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.68rem;
+  color: var(--text-soft);
+  white-space: nowrap;
+  cursor: pointer;
+  input {
+    width: 0.95rem;
+    height: 0.95rem;
+    flex: none;
+    accent-color: var(--klein);
+    cursor: pointer;
+  }
+  &:hover {
+    color: var(--text);
+  }
 }
 .toolbar__summary {
   display: inline-flex;
@@ -948,7 +936,6 @@
 }
 .segmented {
   display: inline-flex;
-  overflow: hidden;
   border: 1px solid var(--line);
   border-radius: var(--radius-pill);
   background: var(--paper);
@@ -968,8 +955,14 @@
     transition:
       background var(--speed) var(--ease),
       color var(--speed) var(--ease);
+    &:first-child {
+      border-top-left-radius: inherit;
+      border-bottom-left-radius: inherit;
+    }
     &:last-child {
       border-right: 0;
+      border-top-right-radius: inherit;
+      border-bottom-right-radius: inherit;
     }
     .mono {
       font-size: 0.54rem;
@@ -990,10 +983,11 @@
 }
 .toolbar__end {
   display: flex;
+  flex: 1 1 auto;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.5rem 0.85rem;
-  margin-left: auto;
+  justify-content: flex-end;
+  gap: 0.5rem 1rem;
   padding-bottom: 0.1rem;
 }
 .toolbar__count {
@@ -1093,17 +1087,34 @@
   }
 }
 /* ---------- Inspector ---------- */
+/* The ficha técnica floats over the workspace: opening it never shrinks the
+   image grid. */
 .inspector {
-  position: sticky;
+  position: fixed;
   top: 0;
-  z-index: 28;
+  right: 0;
+  z-index: 29;
+  width: var(--inspector-w);
   height: 100dvh;
   padding: 1.5rem 1.4rem 2rem;
   overflow-y: auto;
   border-left: 1px solid var(--line);
   background: var(--paper);
+  box-shadow: var(--shadow-lg);
+  visibility: hidden;
+  transform: translateX(100%);
+  transition:
+    transform var(--speed) var(--ease),
+    visibility 0s linear var(--speed);
   scrollbar-width: thin;
   scrollbar-color: var(--line) transparent;
+}
+.app.is-inspector-open .inspector {
+  visibility: visible;
+  transform: translateX(0);
+  transition:
+    transform var(--speed) var(--ease),
+    visibility 0s;
 }
 .inspector__head {
   display: flex;

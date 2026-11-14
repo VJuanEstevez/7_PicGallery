@@ -37,11 +37,11 @@ function cardTemplate(image, index, state) {
           <dt>Formato</dt>
           <dd>${format}${image.format === 'RAW' ? ' · proxy JPG' : ''}</dd>
         </div>
-        <div>
+        <div class="card__fact--dimensions">
           <dt>Dimensiones</dt>
           <dd>${image.width} × ${image.height} px</dd>
         </div>
-        <div>
+        <div class="card__fact--size">
           <dt>Peso</dt>
           <dd>${formatBytes(image.bytes)}</dd>
         </div>
@@ -78,6 +78,7 @@ function cardTemplate(image, index, state) {
           data-id="${escapeHtml(image.id)}"
           data-focus-key="open-${escapeHtml(image.id)}"
           aria-label="Abrir ${title} en el visor"
+          data-tooltip="Abrir en grande"
           draggable="true"
         >
           <img
@@ -115,6 +116,9 @@ function cardTemplate(image, index, state) {
           data-focus-key="fav-${escapeHtml(image.id)}"
           aria-pressed="${favorite}"
           aria-label="${favorite ? `Quitar ${title} de favoritos` : `Añadir ${title} a favoritos`}"
+          data-tooltip="${
+            favorite ? 'Quitar de favoritos' : 'Añadir a favoritos'
+          }"
         >
           <svg class="icon" aria-hidden="true"><use href="#icon-heart"></use></svg>
         </button>
@@ -126,7 +130,7 @@ function cardTemplate(image, index, state) {
           data-id="${escapeHtml(image.id)}"
           data-focus-key="rename-${escapeHtml(image.id)}"
           aria-label="Cambiar el nombre de ${title}"
-          title="Cambiar nombre"
+          data-tooltip="Cambiar nombre"
         >
           <svg class="icon" aria-hidden="true"><use href="#icon-pencil"></use></svg>
         </button>
@@ -138,7 +142,7 @@ function cardTemplate(image, index, state) {
           data-id="${escapeHtml(image.id)}"
           data-focus-key="delete-${escapeHtml(image.id)}"
           aria-label="Eliminar ${title}"
-          title="Eliminar imagen"
+          data-tooltip="Eliminar imagen"
         >
           <svg class="icon" aria-hidden="true"><use href="#icon-trash"></use></svg>
         </button>
@@ -151,7 +155,11 @@ function cardTemplate(image, index, state) {
       <div class="card__meta">
         <div class="card__heading">
           <h3 class="card__title" title="${title}">${title}</h3>
-          <span class="card__spec">${image.width}×${image.height} · ${formatBytes(image.bytes)}</span>
+          <span class="card__spec">
+            <span class="card__spec-dims">${image.width}×${image.height}</span>
+            <span class="card__spec-sep" aria-hidden="true"> · </span>
+            <span class="card__spec-size">${formatBytes(image.bytes)}</span>
+          </span>
         </div>
         ${description}
         ${facts}
@@ -169,7 +177,12 @@ function emptyTemplate(state, hasFilters) {
         </span>
         <h2>Tu biblioteca está vacía</h2>
         <p>Añade tu primera imagen para empezar a organizar la colección.</p>
-        <button class="btn btn--primary" type="button" data-action="open-upload">
+        <button
+          class="btn btn--primary"
+          type="button"
+          data-action="open-upload"
+          data-tooltip="Elegir imágenes del equipo"
+        >
           <svg class="icon" aria-hidden="true"><use href="#icon-plus"></use></svg>
           Añadir imágenes
         </button>
@@ -185,7 +198,12 @@ function emptyTemplate(state, hasFilters) {
         </span>
         <h2>Nada por aquí</h2>
         <p>No hay imágenes que coincidan con los filtros activos. Prueba con otro color, formato, etiqueta o búsqueda.</p>
-        <button class="btn btn--ghost" type="button" data-action="clear-filters">
+        <button
+          class="btn btn--ghost"
+          type="button"
+          data-action="clear-filters"
+          data-tooltip="Quitar todos los filtros activos"
+        >
           Limpiar filtros
         </button>
       </div>
@@ -199,7 +217,12 @@ function emptyTemplate(state, hasFilters) {
       </span>
       <h2>Esta carpeta está vacía</h2>
       <p>Mueve imágenes desde otra carpeta o añade nuevas piezas a la colección.</p>
-      <button class="btn btn--primary" type="button" data-action="open-upload">
+      <button
+        class="btn btn--primary"
+        type="button"
+        data-action="open-upload"
+        data-tooltip="Elegir imágenes del equipo"
+      >
         <svg class="icon" aria-hidden="true"><use href="#icon-plus"></use></svg>
         Añadir imágenes
       </button>

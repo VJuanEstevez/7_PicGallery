@@ -420,6 +420,19 @@ export function deleteAllImages() {
   return deleteImages(state.images.map((image) => image.id))
 }
 
+export function renameFolder(id, name) {
+  const folder = getFolder(id)
+  if (!folder) return null
+
+  const clean = String(name ?? '').trim()
+  if (!clean) return null
+  if (folder.name === clean) return clean
+
+  folder.name = clean
+  notify('update')
+  return clean
+}
+
 export function deleteFolder(id) {
   if (id === 'inbox') return false
 
@@ -446,7 +459,7 @@ export function setView(patch, reason = 'view-style') {
     layout: next.layout === 'list' ? 'list' : 'grid',
     columns: Math.min(8, Math.max(3, Number(next.columns) || 4)),
     gap: Math.min(48, Math.max(0, Number(next.gap) || 0)),
-    showMeta: Boolean(next.showMeta)
+    showMeta: next.showMeta !== false
   }
 
   notify(reason)

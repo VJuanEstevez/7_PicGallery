@@ -263,6 +263,7 @@ function renderExportDialog() {
   }
 
   const element = getDialog()
+  element.classList.remove('is-settings-open')
 
   element.innerHTML = `
     <form class="dialog__form" id="export-form">
@@ -272,19 +273,34 @@ function renderExportDialog() {
           <h2 class="dialog__title" id="export-title">Exportar colección</h2>
           <p class="dialog__sub">Prepara una hoja en cuadrícula lista para clientes.</p>
         </div>
-        <button
-          class="icon-btn icon-btn--bare"
-          type="button"
-          data-action="close-dialog"
-          data-dialog="export-dialog"
-          aria-label="Cerrar"
-        >
-          <svg class="icon" aria-hidden="true"><use href="#icon-close"></use></svg>
-        </button>
+        <div class="dialog__head-actions">
+          <button
+            class="btn btn--ghost export__options-toggle"
+            type="button"
+            data-action="toggle-export-settings"
+            data-focus-key="export-options"
+            aria-expanded="false"
+            aria-controls="export-settings"
+            data-tooltip="Mostrar u ocultar las opciones"
+          >
+            <svg class="icon" aria-hidden="true"><use href="#icon-sliders"></use></svg>
+            <span class="btn__label">Opciones</span>
+          </button>
+          <button
+            class="icon-btn icon-btn--bare"
+            type="button"
+            data-action="close-dialog"
+            data-dialog="export-dialog"
+            aria-label="Cerrar"
+            data-tooltip="Cerrar"
+          >
+            <svg class="icon" aria-hidden="true"><use href="#icon-close"></use></svg>
+          </button>
+        </div>
       </header>
 
       <div class="export__body">
-        <div class="export__settings">
+        <div class="export__settings" id="export-settings">
           <label class="field">
             <span>Título de la presentación</span>
             <input data-export-field="title" value="${escapeHtml(settings.title)}" />
@@ -360,10 +376,16 @@ function renderExportDialog() {
           type="button"
           data-action="close-dialog"
           data-dialog="export-dialog"
+          data-tooltip="Cerrar sin exportar"
         >
           Cancelar
         </button>
-        <button class="btn btn--primary" type="button" data-action="export-print">
+        <button
+          class="btn btn--primary"
+          type="button"
+          data-action="export-print"
+          data-tooltip="Imprimir o guardar la presentación como PDF"
+        >
           <svg class="icon" aria-hidden="true"><use href="#icon-download"></use></svg>
           Imprimir / Guardar PDF
         </button>
@@ -398,6 +420,14 @@ export function openExportDialog() {
   renderExportDialog()
   const element = getDialog()
   if (!element.open) element.showModal()
+}
+
+export function toggleExportSettings(button) {
+  const element = getDialog()
+  if (!element) return
+
+  const open = element.classList.toggle('is-settings-open')
+  if (button) button.setAttribute('aria-expanded', String(open))
 }
 
 export async function printPresentation() {

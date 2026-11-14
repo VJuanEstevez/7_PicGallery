@@ -46,6 +46,7 @@ export function renderTopbar(root) {
       aria-label="${sidebarLabel}"
       aria-expanded="${sidebarExpanded}"
       aria-controls="sidebar"
+      data-tooltip="${sidebarExpanded ? 'Ocultar el menú' : 'Mostrar el menú'}"
     >
       <svg class="icon" aria-hidden="true"><use href="#icon-menu"></use></svg>
     </button>
@@ -70,12 +71,13 @@ export function renderTopbar(root) {
         />
       </label>
 
-      <button class="btn btn--ghost" type="button" data-action="open-export" data-focus-key="export">
-        <svg class="icon" aria-hidden="true"><use href="#icon-layout"></use></svg>
-        <span class="btn__label">Exportar</span>
-      </button>
-
-      <button class="btn btn--primary" type="button" data-action="open-upload" data-focus-key="upload">
+      <button
+        class="btn btn--primary"
+        type="button"
+        data-action="open-upload"
+        data-focus-key="upload"
+        data-tooltip="Añadir imágenes a la biblioteca"
+      >
         <svg class="icon" aria-hidden="true"><use href="#icon-plus"></use></svg>
         Añadir imágenes
       </button>
@@ -88,6 +90,7 @@ export function renderTopbar(root) {
         aria-expanded="${inspectorExpanded}"
         aria-controls="inspector"
         data-focus-key="inspector-toggle"
+        data-tooltip="${inspectorExpanded ? 'Ocultar ficha técnica' : 'Mostrar ficha técnica'}"
       >
         <svg class="icon" aria-hidden="true"><use href="#icon-info"></use></svg>
       </button>
