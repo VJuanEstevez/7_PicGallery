@@ -78,7 +78,6 @@ function cardTemplate(image, index, state) {
           data-id="${escapeHtml(image.id)}"
           data-focus-key="open-${escapeHtml(image.id)}"
           aria-label="Abrir ${title} en el visor"
-          data-tooltip="Abrir en grande"
           draggable="true"
         >
           <img
@@ -116,9 +115,6 @@ function cardTemplate(image, index, state) {
           data-focus-key="fav-${escapeHtml(image.id)}"
           aria-pressed="${favorite}"
           aria-label="${favorite ? `Quitar ${title} de favoritos` : `Añadir ${title} a favoritos`}"
-          data-tooltip="${
-            favorite ? 'Quitar de favoritos' : 'Añadir a favoritos'
-          }"
         >
           <svg class="icon" aria-hidden="true"><use href="#icon-heart"></use></svg>
         </button>
@@ -130,7 +126,6 @@ function cardTemplate(image, index, state) {
           data-id="${escapeHtml(image.id)}"
           data-focus-key="rename-${escapeHtml(image.id)}"
           aria-label="Cambiar el nombre de ${title}"
-          data-tooltip="Cambiar nombre"
         >
           <svg class="icon" aria-hidden="true"><use href="#icon-pencil"></use></svg>
         </button>
@@ -142,7 +137,6 @@ function cardTemplate(image, index, state) {
           data-id="${escapeHtml(image.id)}"
           data-focus-key="delete-${escapeHtml(image.id)}"
           aria-label="Eliminar ${title}"
-          data-tooltip="Eliminar imagen"
         >
           <svg class="icon" aria-hidden="true"><use href="#icon-trash"></use></svg>
         </button>
@@ -154,7 +148,16 @@ function cardTemplate(image, index, state) {
 
       <div class="card__meta">
         <div class="card__heading">
-          <h3 class="card__title" title="${title}">${title}</h3>
+          <h3 class="card__title" title="${title}">
+            <button
+              class="card__title-btn"
+              type="button"
+              data-action="rename-image"
+              data-id="${escapeHtml(image.id)}"
+              data-focus-key="rename-title-${escapeHtml(image.id)}"
+              aria-label="Cambiar el nombre de ${title}"
+            >${title}</button>
+          </h3>
           <span class="card__spec">
             <span class="card__spec-dims">${image.width}×${image.height}</span>
             <span class="card__spec-sep" aria-hidden="true"> · </span>
@@ -197,7 +200,7 @@ function emptyTemplate(state, hasFilters) {
           <svg class="icon"><use href="#icon-search"></use></svg>
         </span>
         <h2>Nada por aquí</h2>
-        <p>No hay imágenes que coincidan con los filtros activos. Prueba con otro color, formato, etiqueta o búsqueda.</p>
+        <p>No hay imágenes que coincidan con los filtros activos. Prueba con otra etiqueta o con otra búsqueda.</p>
         <button
           class="btn btn--ghost"
           type="button"
@@ -235,8 +238,6 @@ export function renderGallery(root, options = {}) {
   const visible = getVisibleImages(state)
   const hasFilters =
     state.filters.query.trim() !== '' ||
-    state.filters.colors.length > 0 ||
-    state.filters.formats.length > 0 ||
     state.filters.tags.length > 0
 
   if (visible.length === 0) {

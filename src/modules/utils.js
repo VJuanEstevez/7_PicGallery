@@ -152,42 +152,6 @@ export function rgbToHex(red, green, blue) {
     .toUpperCase()}`
 }
 
-export function rgbToHsl(red, green, blue) {
-  const r = red / 255
-  const g = green / 255
-  const b = blue / 255
-  const max = Math.max(r, g, b)
-  const min = Math.min(r, g, b)
-  const lightness = (max + min) / 2
-  const delta = max - min
-
-  if (delta === 0) {
-    return { h: 0, s: 0, l: lightness }
-  }
-
-  const saturation = delta / (1 - Math.abs(2 * lightness - 1))
-  let hue = 0
-
-  if (max === r) hue = ((g - b) / delta) % 6
-  else if (max === g) hue = (b - r) / delta + 2
-  else hue = (r - g) / delta + 4
-
-  hue *= 60
-  if (hue < 0) hue += 360
-
-  return { h: hue, s: saturation, l: lightness }
-}
-
-export function hueFamily(hue) {
-  if (hue < 15 || hue >= 345) return 'red'
-  if (hue < 45) return 'orange'
-  if (hue < 70) return 'yellow'
-  if (hue < 165) return 'green'
-  if (hue < 200) return 'cyan'
-  if (hue < 255) return 'blue'
-  return 'purple'
-}
-
 export function colorDistance(first, second) {
   return Math.sqrt(
     (first[0] - second[0]) ** 2 +

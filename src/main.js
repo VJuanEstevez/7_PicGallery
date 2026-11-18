@@ -24,9 +24,7 @@ import {
   setSort,
   setView,
   subscribe,
-  toggleColor,
   toggleFavorite,
-  toggleFormat,
   toggleSelection,
   toggleTag
 } from './modules/store.js'
@@ -57,16 +55,12 @@ import {
   openLightbox,
   syncLightbox
 } from './modules/lightbox.js'
-import {
-  initExport,
-  openExportDialog,
-  printPresentation,
-  toggleExportSettings
-} from './modules/export.js'
 import { extractPaletteFromSource } from './modules/palette.js'
 import { toast } from './modules/toast.js'
 import { copyText, downloadImage } from './modules/utils.js'
 import { confirmAction } from './modules/confirm.js'
+import { initSettings, openSettingsDialog } from './modules/settings.js'
+import { downloadCollection } from './modules/export-collection.js'
 
 const app = document.getElementById('app')
 const sidebar = document.getElementById('sidebar')
@@ -226,11 +220,6 @@ function render(reason = 'update') {
     updatePaletteUI()
     renderInspector(inspector)
     syncLightbox()
-
-    if (state.filters.colors.length > 0) {
-      renderGallery(galleryRegion)
-      renderBulkBar(bulkBar)
-    }
   } else if (reason === 'sort' || reason === 'reorder') {
     renderGallery(galleryRegion)
     syncSortValue(state)
@@ -439,16 +428,12 @@ function setupListeners() {
         pickFiles()
         break
 
-      case 'open-export':
-        openExportDialog()
+      case 'download-collection':
+        await downloadCollection()
         break
 
-      case 'toggle-export-settings':
-        toggleExportSettings(target)
-        break
-
-      case 'export-print':
-        await printPresentation()
+      case 'open-settings':
+        openSettingsDialog()
         break
 
       case 'open-move':
@@ -560,14 +545,6 @@ function setupListeners() {
         break
       }
 
-      case 'toggle-color':
-        toggleColor(target.dataset.color)
-        break
-
-      case 'toggle-format':
-        toggleFormat(target.dataset.format)
-        break
-
       case 'toggle-tag':
         toggleTag(target.dataset.tag)
         break
@@ -625,12 +602,6 @@ function setupListeners() {
     const checkbox = event.target.closest('input[data-select]')
     if (checkbox) {
       toggleSelection(checkbox.dataset.select, checkbox.checked)
-      return
-    }
-
-    const layout = event.target.closest('[data-view-layout]')
-    if (layout) {
-      setView({ layout: layout.value }, 'view')
       return
     }
 
@@ -695,7 +666,13 @@ function setupListeners() {
 
   scrim.addEventListener('click', closeOverlays)
 
-  for (const id of ['move-dialog', 'rename-dialog', 'upload-dialog', 'confirm-dialog']) {
+  for (const id of [
+    'move-dialog',
+    'rename-dialog',
+    'upload-dialog',
+    'confirm-dialog',
+    'settings-dialog'
+  ]) {
     const dialog = document.getElementById(id)
     dialog?.addEventListener('click', (event) => {
       if (event.target === dialog) dialog.close()
@@ -743,7 +720,7 @@ async function hydratePalettes() {
 async function boot() {
   initDragDrop()
   initUpload()
-  initExport()
+  initSettings()
   setupListeners()
 
   try {

@@ -85,26 +85,17 @@
     gap: 0.9rem 1.1rem;
   }
 
-  .toolbar__group--display {
+  .toolbar__zone--display {
     padding-left: 0;
     border-left: 0;
   }
 
-  .toolbar__end {
+  .toolbar__zone--end {
     width: 100%;
+  }
+
+  .toolbar__controls--end {
     justify-content: space-between;
-  }
-
-  .chips {
-    flex-wrap: nowrap;
-    width: 100%;
-    padding-bottom: 0.2rem;
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-
-  .chips::-webkit-scrollbar {
-    display: none;
   }
 
   .segmented {
@@ -228,19 +219,6 @@
 
   .palette__grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .export__preview {
-    padding: 0.75rem;
-  }
-
-  .sheet__cover {
-    min-height: 24rem;
-    padding: 1.5rem;
-  }
-
-  .sheet__page {
-    padding: 1.25rem;
   }
 }
 

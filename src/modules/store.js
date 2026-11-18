@@ -2,7 +2,6 @@ import { deleteUpload, getAllUploads } from './db.js'
 import { seedFolders, seedImages } from './seed.js'
 import { loadSavedState, savePersistedState } from './storage.js'
 import { assetUrl, debounce, slugify } from './utils.js'
-import { dominantFamily } from './palette.js'
 
 const RECENT_LIMIT = 8
 const FOLDER_COLORS = ['#c8553d', '#1b2aff', '#3e7c4a', '#7a4b9e', '#d8a400', '#2b9c9c']
@@ -20,8 +19,6 @@ const state = {
   activeFolder: 'all',
   filters: {
     query: '',
-    colors: [],
-    formats: [],
     tags: []
   },
   view: {
@@ -100,18 +97,23 @@ export function getFolderEyebrow(id) {
   return 'Carpeta'
 }
 
-export function getVisibleImages(current = state) {
-  let images = current.images
-
+export function getFolderImages(current = state) {
   if (current.activeFolder === 'favorites') {
-    images = images.filter((image) => image.favorite)
-  } else if (current.activeFolder === 'recent') {
-    images = [...images]
+    return current.images.filter((image) => image.favorite)
+  }
+  if (current.activeFolder === 'recent') {
+    return [...current.images]
       .sort((first, second) => new Date(second.createdAt) - new Date(first.createdAt))
       .slice(0, RECENT_LIMIT)
-  } else if (current.activeFolder !== 'all') {
-    images = images.filter((image) => image.folderId === current.activeFolder)
   }
+  if (current.activeFolder !== 'all') {
+    return current.images.filter((image) => image.folderId === current.activeFolder)
+  }
+  return [...current.images]
+}
+
+export function getVisibleImages(current = state) {
+  let images = getFolderImages(current)
 
   const query = current.filters.query.trim().toLowerCase()
 
@@ -121,17 +123,6 @@ export function getVisibleImages(current = state) {
       return `${image.title} ${image.description ?? ''} ${folder}`
         .toLowerCase()
         .includes(query)
-    })
-  }
-
-  if (current.filters.formats.length > 0) {
-    images = images.filter((image) => current.filters.formats.includes(image.format))
-  }
-
-  if (current.filters.colors.length > 0) {
-    images = images.filter((image) => {
-      if (!image.palette) return false
-      return current.filters.colors.includes(dominantFamily(image.palette))
     })
   }
 
@@ -161,18 +152,6 @@ export function getTotalBytes(images = state.images) {
   return images.reduce((total, image) => total + (Number(image.bytes) || 0), 0)
 }
 
-export function getFormatBreakdown(images = state.images) {
-  const formats = ['JPG', 'PNG', 'WEBP', 'RAW']
-  return formats.map((format) => {
-    const subset = images.filter((image) => image.format === format)
-    return {
-      format,
-      count: subset.length,
-      bytes: getTotalBytes(subset)
-    }
-  })
-}
-
 export function getCounts(current = state) {
   const folders = Object.fromEntries(
     current.folders.map((folder) => [
@@ -185,10 +164,7 @@ export function getCounts(current = state) {
     total: current.images.length,
     favorites: current.images.filter((image) => image.favorite).length,
     recent: Math.min(RECENT_LIMIT, current.images.length),
-    folders,
-    formats: Object.fromEntries(
-      getFormatBreakdown(current.images).map((entry) => [entry.format, entry.count])
-    )
+    folders
   }
 }
 
@@ -245,38 +221,6 @@ export function setQuery(query) {
   notify('filters')
 }
 
-export function toggleColor(color) {
-  if (color === 'all') {
-    state.filters.colors = []
-  } else {
-    const colors = new Set(state.filters.colors)
-    if (colors.has(color)) colors.delete(color)
-    else colors.add(color)
-    state.filters.colors = [...colors]
-  }
-
-  state.selectedIds = []
-  const visible = getVisibleImages()
-  if (!visible.some((image) => image.id === state.activeImageId)) {
-    state.activeImageId = visible[0]?.id ?? null
-  }
-  notify('filters')
-}
-
-export function toggleFormat(format) {
-  const formats = new Set(state.filters.formats)
-  if (formats.has(format)) formats.delete(format)
-  else formats.add(format)
-  state.filters.formats = [...formats]
-
-  state.selectedIds = []
-  const visible = getVisibleImages()
-  if (!visible.some((image) => image.id === state.activeImageId)) {
-    state.activeImageId = visible[0]?.id ?? null
-  }
-  notify('filters')
-}
-
 export function toggleTag(tag) {
   const tags = new Set(state.filters.tags)
   if (tags.has(tag)) tags.delete(tag)
@@ -292,7 +236,7 @@ export function toggleTag(tag) {
 }
 
 export function clearFilters() {
-  state.filters = { query: '', colors: [], formats: [], tags: [] }
+  state.filters = { query: '', tags: [] }
   state.selectedIds = []
   const visible = getVisibleImages()
   if (!visible.some((image) => image.id === state.activeImageId)) {
@@ -594,8 +538,6 @@ export async function initStore() {
     if (saved.filters) {
       state.filters = {
         query: typeof saved.filters.query === 'string' ? saved.filters.query : '',
-        colors: Array.isArray(saved.filters.colors) ? saved.filters.colors : [],
-        formats: Array.isArray(saved.filters.formats) ? saved.filters.formats : [],
         tags: Array.isArray(saved.filters.tags) ? saved.filters.tags : []
       }
     }

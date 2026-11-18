@@ -1,4 +1,4 @@
-import { colorDistance, hexToRgb, hueFamily, rgbToHex, rgbToHsl } from './utils.js'
+import { colorDistance, hexToRgb, rgbToHex } from './utils.js'
 
 const SAMPLE_SIZE = 64
 const MAX_CANDIDATES = 48
@@ -113,27 +113,3 @@ export function paletteFromPixels(data) {
   return palette
 }
 
-export function dominantFamily(palette) {
-  if (!Array.isArray(palette) || palette.length === 0) return 'neutral'
-
-  const scores = new Map()
-
-  palette.forEach((hex, index) => {
-    const [red, green, blue] = hexToRgb(hex)
-    const { h, s, l } = rgbToHsl(red, green, blue)
-
-    if (s < 0.18 || l < 0.08 || l > 0.94) return
-
-    const family = hueFamily(h)
-    const weight =
-      (1 - index / palette.length) *
-      (0.35 + s) *
-      (l > 0.2 && l < 0.8 ? 1 : 0.6)
-
-    scores.set(family, (scores.get(family) || 0) + weight)
-  })
-
-  if (scores.size === 0) return 'neutral'
-
-  return [...scores.entries()].sort((first, second) => second[1] - first[1])[0][0]
-}

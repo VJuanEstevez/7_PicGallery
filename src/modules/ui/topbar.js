@@ -11,8 +11,6 @@ export function getTopbarSubtitle(state = getState()) {
   const visible = getVisibleImages(state)
   const filtersActive =
     state.filters.query.trim() !== '' ||
-    state.filters.colors.length > 0 ||
-    state.filters.formats.length > 0 ||
     state.filters.tags.length > 0
 
   const totalBytes = getTotalBytes(state.images)
@@ -52,9 +50,8 @@ export function renderTopbar(root) {
     </button>
 
     <div class="topbar__heading">
-      <p class="eyebrow">${getFolderEyebrow(state.activeFolder)} <span>/ Archivo</span></p>
+      <p class="eyebrow">${getFolderEyebrow(state.activeFolder)}
       <h1 class="topbar__title">${escapeHtml(getFolderTitle(state.activeFolder))}</h1>
-      <p class="topbar__sub">${subtitle}</p>
     </div>
 
     <div class="topbar__actions">

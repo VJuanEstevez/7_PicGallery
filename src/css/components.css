@@ -108,6 +108,19 @@
       height: 0.9rem;
     }
   }
+  /* The label sits beside the icon, so the button grows to fit the text
+     instead of staying a fixed circle. */
+  &.icon-btn--pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    width: auto;
+    height: auto;
+    padding: 0.32rem 0.62rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
   &.icon-btn--bare {
     width: 1.9rem;
     height: 1.9rem;
@@ -393,12 +406,33 @@
     min-width: 0;
   }
   .card__title {
+    min-width: 0;
     overflow: hidden;
     font-size: 0.86rem;
     font-weight: 600;
     letter-spacing: -0.01em;
+  }
+  .card__title-btn {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    letter-spacing: inherit;
+    text-align: left;
     text-overflow: ellipsis;
     white-space: nowrap;
+    cursor: pointer;
+    &:hover {
+      text-decoration: underline;
+      text-underline-offset: 0.16em;
+    }
+    &:focus-visible {
+      outline-offset: -2px;
+    }
   }
   .card__spec {
     flex: none;
@@ -477,6 +511,9 @@
       font-weight: 500;
       letter-spacing: -0.03em;
       white-space: normal;
+      .card__title-btn {
+        white-space: normal;
+      }
     }
     .card__media {
       width: 100%;
@@ -905,9 +942,6 @@ body.is-dragging-cards {
     background: rgb(14 15 17 / 0.55);
     backdrop-filter: blur(4px);
   }
-  &.dialog--wide {
-    width: min(76rem, calc(100vw - 2rem));
-  }
   .dialog__form {
     display: flex;
     flex-direction: column;
@@ -1006,18 +1040,64 @@ body.is-dragging-cards {
   line-height: 1.5;
   color: var(--text-faint);
 }
-.toggle-field {
+/* ---------- Settings dialog ---------- */
+.settings__range {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.42rem 0;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding-bottom: 1.1rem;
+  label {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--text-soft);
+  }
+  output {
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    color: var(--text-faint);
+    font-variant-numeric: tabular-nums;
+  }
+  input[type="range"] {
+    width: 100%;
+    accent-color: var(--klein);
+    cursor: pointer;
+  }
+}
+.settings__toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
   font-size: 0.74rem;
   color: var(--text-soft);
   cursor: pointer;
   input {
     width: 1rem;
     height: 1rem;
+    flex: none;
+    margin-top: 0.12rem;
     accent-color: var(--klein);
+    cursor: pointer;
+  }
+  span {
+    display: flex;
+    flex-direction: column;
+    gap: 0.28rem;
+  }
+  strong {
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  small {
+    font-size: 0.66rem;
+    line-height: 1.55;
+    color: var(--text-faint);
   }
 }
 .dropzone {
@@ -1198,7 +1278,7 @@ body.is-dragging-cards {
    are already positioned on their own. The exclusions sit in :where() so the
    context rules below can still take the trigger out of the flow. */
 [data-tooltip]:where(
-  :not(.card__fav):not(.card__rename):not(.card__delete):not(.inspector__fav):not(.lightbox__nav)
+  :not(.inspector__fav):not(.lightbox__nav)
 ) {
   position: relative;
 }
@@ -1236,16 +1316,12 @@ body.is-dragging-cards {
 }
 
 /* Buttons anchored to the right edge: the tooltip grows inwards */
-.card__fav[data-tooltip]::after,
-.card__rename[data-tooltip]::after,
-.card__delete[data-tooltip]::after,
 .inspector__fav[data-tooltip]::after,
 .sidebar [data-tooltip]::after,
 .inspector [data-tooltip]::after,
 .topbar__actions [data-tooltip]::after,
 .lightbox__tools [data-tooltip]::after,
 .lightbox__foot [data-tooltip]::after,
-.dialog__head-actions [data-tooltip]::after,
 .dialog__foot [data-tooltip]::after {
   right: 0;
   left: auto;
@@ -1287,14 +1363,10 @@ body.is-dragging-cards {
 
 /* Wrapped filter groups in the sidebar: anchor the tooltip to the whole group,
    otherwise it would grow out of the narrow column */
-.sidebar .chips,
-.sidebar .tag-list,
-.sidebar .segmented {
+.sidebar .tag-list {
   position: relative;
 }
-.sidebar .chips [data-tooltip],
-.sidebar .tag-list [data-tooltip],
-.sidebar .segmented [data-tooltip] {
+.sidebar .tag-list [data-tooltip] {
   position: static;
 }
 
@@ -1320,8 +1392,7 @@ body.is-dragging-cards {
   --tooltip-y: 2px;
 }
 
-/* Buttons that fill an image frame: keep the tooltip inside the frame */
-.card__open[data-tooltip]::after,
+/* Buttons sitting in an image frame: keep the tooltip inside the frame */
 .inspector__open[data-tooltip]::after {
   top: auto;
   bottom: 0.7rem;
