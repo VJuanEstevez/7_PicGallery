@@ -1,29 +1,29 @@
-import { escapeHtml } from './utils.js'
+import { escapeHtml } from "./utils.js";
 
-let dialog = null
-let resolver = null
+let dialog = null;
+let resolver = null;
 
 function getDialog() {
-  if (!dialog) dialog = document.getElementById('confirm-dialog')
-  return dialog
+  if (!dialog) dialog = document.getElementById("confirm-dialog");
+  return dialog;
 }
 
 export function confirmAction({
   title,
   message,
-  confirmLabel = 'Confirmar',
-  cancelLabel = 'Cancelar',
-  danger = false
+  confirmLabel = "Confirmar",
+  cancelLabel = "Cancelar",
+  danger = false,
 } = {}) {
-  const element = getDialog()
-  if (!element) return Promise.resolve(false)
+  const element = getDialog();
+  if (!element) return Promise.resolve(false);
 
   if (resolver) {
-    resolver(false)
-    resolver = null
+    resolver(false);
+    resolver = null;
   }
 
-  if (element.open) element.close()
+  if (element.open) element.close();
 
   element.innerHTML = `
     <form method="dialog" class="dialog__form">
@@ -46,7 +46,7 @@ export function confirmAction({
           ${escapeHtml(cancelLabel)}
         </button>
         <button
-          class="btn ${danger ? 'btn--danger' : 'btn--primary'}"
+          class="btn ${danger ? "btn--danger" : "btn--primary"}"
           type="submit"
           value="confirm"
           data-tooltip="Confirmar la acción"
@@ -55,22 +55,22 @@ export function confirmAction({
         </button>
       </footer>
     </form>
-  `
+  `;
 
-  element.returnValue = ''
-  element.showModal()
+  element.returnValue = "";
+  element.showModal();
 
   return new Promise((resolve) => {
-    resolver = resolve
+    resolver = resolve;
 
     element.addEventListener(
-      'close',
+      "close",
       () => {
-        const confirmed = element.returnValue === 'confirm'
-        resolver = null
-        resolve(confirmed)
+        const confirmed = element.returnValue === "confirm";
+        resolver = null;
+        resolve(confirmed);
       },
       { once: true }
-    )
-  })
+    );
+  });
 }

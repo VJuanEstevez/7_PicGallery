@@ -15,19 +15,23 @@
   font-size: 0.72rem;
   font-weight: 600;
   cursor: pointer;
+
   .icon {
     width: 0.9rem;
     height: 0.9rem;
     color: #8f98ff;
   }
+
   &:hover,
   &:focus-visible {
     background: #24272c;
   }
+
   &[hidden] {
     display: none;
   }
 }
+
 @media (max-width: 640px) {
   .install-app {
     right: 1rem;

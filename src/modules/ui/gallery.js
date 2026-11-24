@@ -1,39 +1,35 @@
-import { getFolderTitle, getState, getVisibleImages } from '../store.js'
-import { escapeHtml, formatBytes } from '../utils.js'
+import { getFolderTitle, getState, getVisibleImages } from "../store.js";
+import { escapeHtml, formatBytes } from "../utils.js";
 
 function paletteSpine(image) {
   const palette =
     Array.isArray(image.palette) && image.palette.length > 0
       ? image.palette
-      : ['#d7d3ca', '#d7d3ca', '#d7d3ca', '#d7d3ca', '#d7d3ca', '#d7d3ca']
+      : ["#d7d3ca", "#d7d3ca", "#d7d3ca", "#d7d3ca", "#d7d3ca", "#d7d3ca"];
 
-  return palette
-    .map((hex) => `<span style="--swatch: ${escapeHtml(hex)}"></span>`)
-    .join('')
+  return palette.map((hex) => `<span style="--swatch: ${escapeHtml(hex)}"></span>`).join("");
 }
 
 function cardTemplate(image, index, state) {
-  const selected = state.selectedIds.includes(image.id)
-  const active = state.activeImageId === image.id
-  const favorite = Boolean(image.favorite)
-  const title = escapeHtml(image.title)
-  const format = escapeHtml(image.format)
-  const isList = state.view.layout === 'list'
-  const folderName = escapeHtml(getFolderTitle(image.folderId))
-  const tags = (image.tags ?? [])
-    .map((tag) => `<li>${escapeHtml(tag)}</li>`)
-    .join('')
+  const selected = state.selectedIds.includes(image.id);
+  const active = state.activeImageId === image.id;
+  const favorite = Boolean(image.favorite);
+  const title = escapeHtml(image.title);
+  const format = escapeHtml(image.format);
+  const isList = state.view.layout === "list";
+  const folderName = escapeHtml(getFolderTitle(image.folderId));
+  const tags = (image.tags ?? []).map((tag) => `<li>${escapeHtml(tag)}</li>`).join("");
 
   const description = image.description
     ? `<p class="card__desc">${escapeHtml(image.description)}</p>`
-    : ''
+    : "";
 
   const facts = isList
     ? `
       <dl class="card__facts">
         <div>
           <dt>Formato</dt>
-          <dd>${format}${image.format === 'RAW' ? ' · proxy JPG' : ''}</dd>
+          <dd>${format}${image.format === "RAW" ? " · proxy JPG" : ""}</dd>
         </div>
         <div class="card__fact--dimensions">
           <dt>Dimensiones</dt>
@@ -55,15 +51,15 @@ function cardTemplate(image, index, state) {
                 <dd><ul class="card__tags">${tags}</ul></dd>
               </div>
             `
-            : ''
+            : ""
         }
       </dl>
     `
-    : ''
+    : "";
 
   return `
     <article
-      class="card${isList ? ' card--list' : ''}${selected ? ' is-selected' : ''}${active ? ' is-active' : ''}"
+      class="card${isList ? " card--list" : ""}${selected ? " is-selected" : ""}${active ? " is-active" : ""}"
       data-card-id="${escapeHtml(image.id)}"
       draggable="true"
       style="--i: ${index}"
@@ -97,7 +93,7 @@ function cardTemplate(image, index, state) {
             type="checkbox"
             data-select="${escapeHtml(image.id)}"
             data-focus-key="select-${escapeHtml(image.id)}"
-            ${selected ? 'checked' : ''}
+            ${selected ? "checked" : ""}
             aria-label="Seleccionar ${title}"
           />
           <span class="card__check">
@@ -106,7 +102,7 @@ function cardTemplate(image, index, state) {
         </label>
 
         <button
-          class="card__fav${favorite ? ' is-fav' : ''}"
+          class="card__fav${favorite ? " is-fav" : ""}"
           type="button"
           data-action="favorite"
           data-id="${escapeHtml(image.id)}"
@@ -174,7 +170,7 @@ function cardTemplate(image, index, state) {
         ${facts}
       </div>
     </article>
-  `
+  `;
 }
 
 function emptyTemplate(state, hasFilters) {
@@ -196,7 +192,7 @@ function emptyTemplate(state, hasFilters) {
           Añadir imágenes
         </button>
       </div>
-    `
+    `;
   }
 
   if (hasFilters) {
@@ -216,7 +212,7 @@ function emptyTemplate(state, hasFilters) {
           Limpiar filtros
         </button>
       </div>
-    `
+    `;
   }
 
   return `
@@ -236,113 +232,107 @@ function emptyTemplate(state, hasFilters) {
         Añadir imágenes
       </button>
     </div>
-  `
+  `;
 }
 
 export function renderGallery(root, options = {}) {
-  const state = getState()
-  const visible = getVisibleImages(state)
-  const hasFilters =
-    state.filters.query.trim() !== '' ||
-    state.filters.tags.length > 0
+  const state = getState();
+  const visible = getVisibleImages(state);
+  const hasFilters = state.filters.query.trim() !== "" || state.filters.tags.length > 0;
 
   if (visible.length === 0) {
     root.innerHTML = `
       <section class="gallery-wrap" aria-label="Imágenes de la colección">
         ${emptyTemplate(state, hasFilters)}
       </section>
-    `
-    return
+    `;
+    return;
   }
 
-  const cards = visible
-    .map((image, index) => cardTemplate(image, index, state))
-    .join('')
+  const cards = visible.map((image, index) => cardTemplate(image, index, state)).join("");
 
-  const { layout, columns, gap, showMeta } = state.view
+  const { layout, columns, gap, showMeta } = state.view;
 
   root.innerHTML = `
     <section class="gallery-wrap" aria-label="Imágenes de la colección">
       <h2 class="visually-hidden">Imágenes de la colección</h2>
       <div
-        class="gallery${layout === 'list' ? ' is-list' : ''}${showMeta ? '' : ' is-meta-hidden'}${options.animate ? ' is-entering' : ''}"
+        class="gallery${layout === "list" ? " is-list" : ""}${showMeta ? "" : " is-meta-hidden"}${options.animate ? " is-entering" : ""}"
         id="gallery"
         style="--cols: ${columns}; --gap: ${gap}px"
       >
         ${cards}
       </div>
     </section>
-  `
+  `;
 
   if (options.animate) {
     window.setTimeout(() => {
-      document.getElementById('gallery')?.classList.remove('is-entering')
-    }, 1100)
+      document.getElementById("gallery")?.classList.remove("is-entering");
+    }, 1100);
   }
 }
 
 export function updateGalleryLayout() {
-  const state = getState()
-  const gallery = document.getElementById('gallery')
-  if (!gallery) return
+  const state = getState();
+  const gallery = document.getElementById("gallery");
+  if (!gallery) return;
 
-  const { layout, columns, gap, showMeta } = state.view
-  gallery.style.setProperty('--cols', String(columns))
-  gallery.style.setProperty('--gap', `${gap}px`)
-  gallery.classList.toggle('is-list', layout === 'list')
-  gallery.classList.toggle('is-meta-hidden', !showMeta)
+  const { layout, columns, gap, showMeta } = state.view;
+  gallery.style.setProperty("--cols", String(columns));
+  gallery.style.setProperty("--gap", `${gap}px`);
+  gallery.classList.toggle("is-list", layout === "list");
+  gallery.classList.toggle("is-meta-hidden", !showMeta);
 }
 
 export function updateSelectionUI() {
-  const state = getState()
+  const state = getState();
 
-  document.querySelectorAll('[data-card-id]').forEach((card) => {
-    const selected = state.selectedIds.includes(card.dataset.cardId)
-    const checkbox = card.querySelector('input[data-select]')
+  document.querySelectorAll("[data-card-id]").forEach((card) => {
+    const selected = state.selectedIds.includes(card.dataset.cardId);
+    const checkbox = card.querySelector("input[data-select]");
 
-    card.classList.toggle('is-selected', selected)
-    if (checkbox) checkbox.checked = selected
-  })
+    card.classList.toggle("is-selected", selected);
+    if (checkbox) checkbox.checked = selected;
+  });
 }
 
 export function updateActiveUI() {
-  const state = getState()
+  const state = getState();
 
-  document.querySelectorAll('[data-card-id]').forEach((card) => {
-    card.classList.toggle('is-active', card.dataset.cardId === state.activeImageId)
-  })
+  document.querySelectorAll("[data-card-id]").forEach((card) => {
+    card.classList.toggle("is-active", card.dataset.cardId === state.activeImageId);
+  });
 }
 
 export function updatePaletteUI() {
-  const state = getState()
+  const state = getState();
 
-  document.querySelectorAll('[data-card-id]').forEach((card) => {
-    const image = state.images.find((entry) => entry.id === card.dataset.cardId)
-    const spine = card.querySelector('.card__palette')
-    if (!image?.palette || !spine) return
+  document.querySelectorAll("[data-card-id]").forEach((card) => {
+    const image = state.images.find((entry) => entry.id === card.dataset.cardId);
+    const spine = card.querySelector(".card__palette");
+    if (!image?.palette || !spine) return;
 
     spine.innerHTML = image.palette
       .map((hex) => `<span style="--swatch: ${escapeHtml(hex)}"></span>`)
-      .join('')
-  })
+      .join("");
+  });
 }
 
 export function updateFavoriteUI(id) {
-  const state = getState()
-  const image = state.images.find((entry) => entry.id === id)
-  if (!image) return
+  const state = getState();
+  const image = state.images.find((entry) => entry.id === id);
+  if (!image) return;
 
   const button = document.querySelector(
     `[data-card-id="${CSS.escape(id)}"] [data-action="favorite"]`
-  )
-  if (!button) return
+  );
+  if (!button) return;
 
-  button.classList.toggle('is-fav', Boolean(image.favorite))
-  button.setAttribute('aria-pressed', String(Boolean(image.favorite)))
+  button.classList.toggle("is-fav", Boolean(image.favorite));
+  button.setAttribute("aria-pressed", String(Boolean(image.favorite)));
   button.setAttribute(
-    'aria-label',
-    image.favorite
-      ? `Quitar ${image.title} de favoritos`
-      : `Añadir ${image.title} a favoritos`
-  )
+    "aria-label",
+    image.favorite ? `Quitar ${image.title} de favoritos` : `Añadir ${image.title} a favoritos`
+  );
 }

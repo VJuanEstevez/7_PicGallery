@@ -1,17 +1,17 @@
-import { getState } from './store.js'
+import { getState } from "./store.js";
 
-let dialog = null
+let dialog = null;
 
 function getDialog() {
-  if (!dialog) dialog = document.getElementById('settings-dialog')
-  return dialog
+  if (!dialog) dialog = document.getElementById("settings-dialog");
+  return dialog;
 }
 
 export function initSettings() {
-  const element = getDialog()
-  if (!element || element.dataset.ready) return
+  const element = getDialog();
+  if (!element || element.dataset.ready) return;
 
-  const { columns, gap, showMeta } = getState().view
+  const { columns, gap, showMeta } = getState().view;
 
   element.innerHTML = `
     <div class="dialog__form">
@@ -73,7 +73,7 @@ export function initSettings() {
             type="checkbox"
             data-view-meta
             data-focus-key="settings-meta"
-            ${showMeta ? 'checked' : ''}
+            ${showMeta ? "checked" : ""}
           />
           <span>
             <strong>Mostrar nombre, datos y formato de imagen</strong>
@@ -94,14 +94,14 @@ export function initSettings() {
         </button>
       </footer>
     </div>
-  `
+  `;
 
-  element.dataset.ready = 'true'
+  element.dataset.ready = "true";
 }
 
 export function openSettingsDialog() {
-  initSettings()
-  const element = getDialog()
-  if (!element || element.open) return
-  element.showModal()
+  initSettings();
+  const element = getDialog();
+  if (!element || element.open) return;
+  element.showModal();
 }

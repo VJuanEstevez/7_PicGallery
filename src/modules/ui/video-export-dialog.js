@@ -1,24 +1,24 @@
-import { getFolderImages, getFolderTitle, getState } from '../store.js'
-import { formatNumber } from '../utils.js'
-import { exportVideo } from '../export/video.js'
+import { getFolderImages, getFolderTitle, getState } from "../store.js";
+import { formatNumber } from "../utils.js";
+import { exportVideo } from "../export/video.js";
 
-let dialog = null
-let busy = false
+let dialog = null;
+let busy = false;
 
 function getDialog() {
-  if (!dialog) dialog = document.getElementById('video-export-dialog')
-  return dialog
+  if (!dialog) dialog = document.getElementById("video-export-dialog");
+  return dialog;
 }
 
 function formatSeconds(milliseconds) {
-  return `${new Intl.NumberFormat('es-ES', {
+  return `${new Intl.NumberFormat("es-ES", {
     minimumFractionDigits: 1,
-    maximumFractionDigits: 1
-  }).format(milliseconds / 1000)} s`
+    maximumFractionDigits: 1,
+  }).format(milliseconds / 1000)} s`;
 }
 
 function template() {
-  const fall = 1200
+  const fall = 1200;
 
   return `
     <div class="dialog__form">
@@ -98,75 +98,75 @@ function template() {
         </button>
       </footer>
     </div>
-  `
+  `;
 }
 
 function openDialog() {
-  const element = getDialog()
-  if (!element || element.open || busy) return
+  const element = getDialog();
+  if (!element || element.open || busy) return;
 
-  const state = getState()
-  const count = getFolderImages(state).length
-  const summary = element.querySelector('[data-export-summary]')
-  summary.textContent = `${formatNumber(count)} ${count === 1 ? 'imagen' : 'imágenes'} en “${getFolderTitle(state.activeFolder)}”.`
+  const state = getState();
+  const count = getFolderImages(state).length;
+  const summary = element.querySelector("[data-export-summary]");
+  summary.textContent = `${formatNumber(count)} ${count === 1 ? "imagen" : "imágenes"} en “${getFolderTitle(state.activeFolder)}”.`;
 
-  const progress = element.querySelector('[data-export-progress]')
-  progress.hidden = true
-  progress.value = 0
-  element.showModal()
+  const progress = element.querySelector("[data-export-progress]");
+  progress.hidden = true;
+  progress.value = 0;
+  element.showModal();
 }
 
 async function run() {
-  if (busy) return
-  const element = getDialog()
-  if (!element) return
+  if (busy) return;
+  const element = getDialog();
+  if (!element) return;
 
-  const button = element.querySelector('[data-action="video-export-run"]')
-  const progress = element.querySelector('[data-export-progress]')
+  const button = element.querySelector('[data-action="video-export-run"]');
+  const progress = element.querySelector("[data-export-progress]");
   const options = {
-    fallDuration: Number(element.querySelector('[data-export-fall]').value),
-    random: element.querySelector('[data-export-random]').checked,
-    background: element.querySelector('[data-export-background]').value
-  }
+    fallDuration: Number(element.querySelector("[data-export-fall]").value),
+    random: element.querySelector("[data-export-random]").checked,
+    background: element.querySelector("[data-export-background]").value,
+  };
 
-  busy = true
-  button.disabled = true
-  button.setAttribute('aria-busy', 'true')
-  progress.hidden = false
-  progress.max = 1
-  progress.value = 0
+  busy = true;
+  button.disabled = true;
+  button.setAttribute("aria-busy", "true");
+  progress.hidden = false;
+  progress.max = 1;
+  progress.value = 0;
 
   await exportVideo(options, (done, total) => {
-    if (progress.value === done) return
-    progress.max = total
-    progress.value = done
-  })
+    if (progress.value === done) return;
+    progress.max = total;
+    progress.value = done;
+  });
 
-  busy = false
-  button.disabled = false
-  button.removeAttribute('aria-busy')
+  busy = false;
+  button.disabled = false;
+  button.removeAttribute("aria-busy");
 }
 
 export function initVideoExportDialog() {
-  const element = getDialog()
-  if (!element || element.dataset.ready) return
+  const element = getDialog();
+  if (!element || element.dataset.ready) return;
 
-  element.innerHTML = template()
-  element.dataset.ready = 'true'
+  element.innerHTML = template();
+  element.dataset.ready = "true";
 
-  element.addEventListener('input', (event) => {
-    const slider = event.target.closest('[data-export-fall]')
-    if (!slider) return
+  element.addEventListener("input", (event) => {
+    const slider = event.target.closest("[data-export-fall]");
+    if (!slider) return;
     element.querySelector('[data-output="video-fall"]').textContent = formatSeconds(
       Number(slider.value)
-    )
-  })
+    );
+  });
 
-  document.addEventListener('click', (event) => {
+  document.addEventListener("click", (event) => {
     if (event.target.closest('[data-action="export-video"]')) {
-      openDialog()
-      return
+      openDialog();
+      return;
     }
-    if (event.target.closest('[data-action="video-export-run"]')) run()
-  })
+    if (event.target.closest('[data-action="video-export-run"]')) run();
+  });
 }

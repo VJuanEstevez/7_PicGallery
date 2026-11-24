@@ -1,13 +1,13 @@
-import { getFolderImages, getFolderTitle, getState } from '../store.js'
-import { formatNumber } from '../utils.js'
-import { exportPdf } from '../export/pdf.js'
+import { getFolderImages, getFolderTitle, getState } from "../store.js";
+import { formatNumber } from "../utils.js";
+import { exportPdf } from "../export/pdf.js";
 
-let dialog = null
-let busy = false
+let dialog = null;
+let busy = false;
 
 function getDialog() {
-  if (!dialog) dialog = document.getElementById('pdf-export-dialog')
-  return dialog
+  if (!dialog) dialog = document.getElementById("pdf-export-dialog");
+  return dialog;
 }
 
 function template() {
@@ -97,71 +97,69 @@ function template() {
         </button>
       </footer>
     </div>
-  `
+  `;
 }
 
 function openDialog() {
-  const element = getDialog()
-  if (!element || element.open || busy) return
+  const element = getDialog();
+  if (!element || element.open || busy) return;
 
-  const state = getState()
-  const count = getFolderImages(state).length
-  const summary = element.querySelector('[data-export-summary]')
-  summary.textContent = `${formatNumber(count)} ${count === 1 ? 'imagen' : 'imágenes'} en “${getFolderTitle(state.activeFolder)}”.`
+  const state = getState();
+  const count = getFolderImages(state).length;
+  const summary = element.querySelector("[data-export-summary]");
+  summary.textContent = `${formatNumber(count)} ${count === 1 ? "imagen" : "imágenes"} en “${getFolderTitle(state.activeFolder)}”.`;
 
-  const progress = element.querySelector('[data-export-progress]')
-  progress.hidden = true
-  progress.value = 0
-  element.showModal()
+  const progress = element.querySelector("[data-export-progress]");
+  progress.hidden = true;
+  progress.value = 0;
+  element.showModal();
 }
 
 async function run() {
-  if (busy) return
-  const element = getDialog()
-  if (!element) return
+  if (busy) return;
+  const element = getDialog();
+  if (!element) return;
 
-  const layout =
-    element.querySelector('input[name="pdf-layout"]:checked')?.value ?? '3x3'
-  const gap = Number(element.querySelector('[data-export-gap]').value)
-  const button = element.querySelector('[data-action="pdf-export-run"]')
-  const progress = element.querySelector('[data-export-progress]')
+  const layout = element.querySelector('input[name="pdf-layout"]:checked')?.value ?? "3x3";
+  const gap = Number(element.querySelector("[data-export-gap]").value);
+  const button = element.querySelector('[data-action="pdf-export-run"]');
+  const progress = element.querySelector("[data-export-progress]");
 
-  busy = true
-  button.disabled = true
-  button.setAttribute('aria-busy', 'true')
-  progress.hidden = false
-  progress.max = 1
-  progress.value = 0
+  busy = true;
+  button.disabled = true;
+  button.setAttribute("aria-busy", "true");
+  progress.hidden = false;
+  progress.max = 1;
+  progress.value = 0;
 
   await exportPdf({ layout, gap }, (done, total) => {
-    progress.max = total
-    progress.value = done
-  })
+    progress.max = total;
+    progress.value = done;
+  });
 
-  busy = false
-  button.disabled = false
-  button.removeAttribute('aria-busy')
+  busy = false;
+  button.disabled = false;
+  button.removeAttribute("aria-busy");
 }
 
 export function initPdfExportDialog() {
-  const element = getDialog()
-  if (!element || element.dataset.ready) return
+  const element = getDialog();
+  if (!element || element.dataset.ready) return;
 
-  element.innerHTML = template()
-  element.dataset.ready = 'true'
+  element.innerHTML = template();
+  element.dataset.ready = "true";
 
-  element.addEventListener('input', (event) => {
-    const slider = event.target.closest('[data-export-gap]')
-    if (!slider) return
-    element.querySelector('[data-output="pdf-gap"]').textContent =
-      `${slider.value} px`
-  })
+  element.addEventListener("input", (event) => {
+    const slider = event.target.closest("[data-export-gap]");
+    if (!slider) return;
+    element.querySelector('[data-output="pdf-gap"]').textContent = `${slider.value} px`;
+  });
 
-  document.addEventListener('click', (event) => {
+  document.addEventListener("click", (event) => {
     if (event.target.closest('[data-action="export-pdf"]')) {
-      openDialog()
-      return
+      openDialog();
+      return;
     }
-    if (event.target.closest('[data-action="pdf-export-run"]')) run()
-  })
+    if (event.target.closest('[data-action="pdf-export-run"]')) run();
+  });
 }

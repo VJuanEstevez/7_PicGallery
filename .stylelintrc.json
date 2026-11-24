@@ -7,14 +7,22 @@
     "node_modules/**"
   ],
   "rules": {
+    "property-no-vendor-prefix": null,
     "declaration-block-no-duplicate-properties": null,
+    "value-keyword-case": null,
+    "rule-empty-line-before": null,
+    "comment-empty-line-before": null,
+    "custom-property-empty-line-before": null,
+    "at-rule-empty-line-before": null,
+    "keyframes-name-pattern": null,
+    "color-hex-length": null,
+    "length-zero-no-unit": null,
+    "selector-not-notation": null,
     "selector-class-pattern": null,
     "custom-property-pattern": null,
     "color-function-notation": null,
     "alpha-value-notation": null,
     "media-feature-range-notation": null,
-    "no-descending-specificity": null,
-    "declaration-block-no-redundant-longhand-properties": null,
-    "shorthand-property-no-redundant-values": null
+    "no-descending-specificity": null
   }
 }

@@ -1,31 +1,28 @@
-import { getState, getVisibleImages } from '../store.js'
-import { formatNumber } from '../utils.js'
+import { getState, getVisibleImages } from "../store.js";
+import { formatNumber } from "../utils.js";
 
 export function renderToolbar(root) {
-  const state = getState()
-  const visible = getVisibleImages(state)
-  const filtersActive =
-    state.filters.tags.length > 0 ||
-    state.filters.query.trim() !== ''
+  const state = getState();
+  const visible = getVisibleImages(state);
+  const filtersActive = state.filters.tags.length > 0 || state.filters.query.trim() !== "";
 
   const allSelected =
-    visible.length > 0 &&
-    visible.every((image) => state.selectedIds.includes(image.id))
+    visible.length > 0 && visible.every((image) => state.selectedIds.includes(image.id));
 
-  const { layout, columns, gap } = state.view
-  const isList = layout === 'list'
-  const hasImages = state.images.length > 0
+  const { layout, columns, gap } = state.view;
+  const isList = layout === "list";
+  const hasImages = state.images.length > 0;
 
   const selectAllTooltip = allSelected
-    ? 'Deseleccionar todas las imágenes visibles'
-    : 'Seleccionar todas las imágenes visibles'
+    ? "Deseleccionar todas las imágenes visibles"
+    : "Seleccionar todas las imágenes visibles";
 
   root.innerHTML = `
     <div class="toolbar__zone toolbar__zone--view">
       <div class="toolbar__controls">
         <div class="segmented segmented--icons" role="group" aria-label="Modo de vista">
           <button
-            class="segmented__item${isList ? '' : ' is-active'}"
+            class="segmented__item${isList ? "" : " is-active"}"
             type="button"
             data-action="view-layout"
             data-layout="grid"
@@ -37,7 +34,7 @@ export function renderToolbar(root) {
             <span class="visually-hidden">Cuadrícula</span>
           </button>
           <button
-            class="segmented__item${isList ? ' is-active' : ''}"
+            class="segmented__item${isList ? " is-active" : ""}"
             type="button"
             data-action="view-layout"
             data-layout="list"
@@ -61,44 +58,44 @@ export function renderToolbar(root) {
           <svg class="icon" aria-hidden="true"><use href="#icon-sort"></use></svg>
           <span class="visually-hidden">Ordenar imágenes</span>
           <select data-sort-select data-focus-key="sort">
-            <option value="recent" ${state.sort === 'recent' ? 'selected' : ''}>Más recientes</option>
-            <option value="name" ${state.sort === 'name' ? 'selected' : ''}>Nombre A–Z</option>
-            <option value="size" ${state.sort === 'size' ? 'selected' : ''}>Peso mayor</option>
-            <option value="manual" ${state.sort === 'manual' ? 'selected' : ''}>Orden manual</option>
+            <option value="recent" ${state.sort === "recent" ? "selected" : ""}>Más recientes</option>
+            <option value="name" ${state.sort === "name" ? "selected" : ""}>Nombre A–Z</option>
+            <option value="size" ${state.sort === "size" ? "selected" : ""}>Peso mayor</option>
+            <option value="manual" ${state.sort === "manual" ? "selected" : ""}>Orden manual</option>
           </select>
         </label>
       </div>
     </div>
-  `
+  `;
 }
 
 export function updateToolbarView() {
-  const state = getState()
-  const { layout, columns, gap } = state.view
+  const state = getState();
+  const { layout, columns, gap } = state.view;
 
   document.querySelectorAll('[data-action="view-layout"]').forEach((button) => {
-    const active = button.dataset.layout === layout
-    button.classList.toggle('is-active', active)
-    button.setAttribute('aria-pressed', String(active))
-  })
+    const active = button.dataset.layout === layout;
+    button.classList.toggle("is-active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
 
-  document.querySelectorAll('[data-view-columns]').forEach((input) => {
-    if (input.value !== String(columns)) input.value = String(columns)
-  })
+  document.querySelectorAll("[data-view-columns]").forEach((input) => {
+    if (input.value !== String(columns)) input.value = String(columns);
+  });
 
-  document.querySelectorAll('[data-view-gap]').forEach((input) => {
-    if (input.value !== String(gap)) input.value = String(gap)
-  })
+  document.querySelectorAll("[data-view-gap]").forEach((input) => {
+    if (input.value !== String(gap)) input.value = String(gap);
+  });
 
-  document.querySelectorAll('[data-view-meta]').forEach((input) => {
-    if (input.checked !== state.view.showMeta) input.checked = state.view.showMeta
-  })
+  document.querySelectorAll("[data-view-meta]").forEach((input) => {
+    if (input.checked !== state.view.showMeta) input.checked = state.view.showMeta;
+  });
 
   document.querySelectorAll('[data-output="columns"]').forEach((output) => {
-    output.textContent = `${columns} × ${columns}`
-  })
+    output.textContent = `${columns} × ${columns}`;
+  });
 
   document.querySelectorAll('[data-output="gap"]').forEach((output) => {
-    output.textContent = `${gap} px`
-  })
+    output.textContent = `${gap} px`;
+  });
 }

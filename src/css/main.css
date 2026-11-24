@@ -1,8 +1,8 @@
-@import "./tokens.css";
-@import "./base.css";
-@import "./layout.css";
-@import "./components.css";
-@import "./export.css";
-@import "./pwa.css";
-@import "./lightbox.css";
-@import "./responsive.css";
+@import url("./tokens.css");
+@import url("./base.css");
+@import url("./layout.css");
+@import url("./components.css");
+@import url("./export.css");
+@import url("./pwa.css");
+@import url("./lightbox.css");
+@import url("./responsive.css");

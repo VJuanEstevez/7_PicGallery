@@ -1,18 +1,18 @@
-const STORAGE_KEY = 'picgallery:v1'
+const STORAGE_KEY = "picgallery:v1";
 
 export function loadSavedState() {
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY)
-    if (!raw) return null
-    return JSON.parse(raw)
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
   } catch {
-    return null
+    return null;
   }
 }
 
 export function savePersistedState(data) {
   try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   } catch {
     // Storage can be unavailable or full. The app keeps working in memory.
   }
@@ -20,7 +20,7 @@ export function savePersistedState(data) {
 
 export function clearSavedState() {
   try {
-    window.localStorage.removeItem(STORAGE_KEY)
+    window.localStorage.removeItem(STORAGE_KEY);
   } catch {
     // Ignore unavailable storage.
   }

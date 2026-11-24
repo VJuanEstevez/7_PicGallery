@@ -1,8 +1,8 @@
-import { getFolderImages } from '../store.js'
-import { formatNumber } from '../utils.js'
+import { getFolderImages } from "../store.js";
+import { formatNumber } from "../utils.js";
 
 export function exportSectionTemplate(state) {
-  const count = getFolderImages(state).length
+  const count = getFolderImages(state).length;
 
   return `
     <details class="sidebar__section sidebar__section--export" data-section="export">
@@ -48,9 +48,9 @@ export function exportSectionTemplate(state) {
           </button>
         </div>
         <p class="export-menu__note">
-          Se exportarán las ${formatNumber(count)} ${count === 1 ? 'imagen' : 'imágenes'} de la carpeta activa.
+          Se exportarán las ${formatNumber(count)} ${count === 1 ? "imagen" : "imágenes"} de la carpeta activa.
         </p>
       </div>
     </details>
-  `
+  `;
 }

@@ -1,17 +1,17 @@
-import { getSelectedImages, getState, getTotalBytes } from '../store.js'
-import { formatBytes, formatNumber } from '../utils.js'
+import { getSelectedImages, getState, getTotalBytes } from "../store.js";
+import { formatBytes, formatNumber } from "../utils.js";
 
 export function renderBulkBar(root) {
-  const state = getState()
-  const selected = getSelectedImages(state)
+  const state = getState();
+  const selected = getSelectedImages(state);
 
   if (selected.length === 0) {
-    root.innerHTML = ''
-    return
+    root.innerHTML = "";
+    return;
   }
 
-  const allFavorite = selected.every((image) => image.favorite)
-  const label = `${formatNumber(selected.length)} ${selected.length === 1 ? 'seleccionada' : 'seleccionadas'}`
+  const allFavorite = selected.every((image) => image.favorite);
+  const label = `${formatNumber(selected.length)} ${selected.length === 1 ? "seleccionada" : "seleccionadas"}`;
 
   root.innerHTML = `
     <section class="bulk" aria-label="Acciones de selección">
@@ -22,12 +22,10 @@ export function renderBulkBar(root) {
         Mover a…
       </button>
       <button class="bulk__btn" type="button" data-action="bulk-favorite" data-focus-key="bulk-favorite" data-tooltip="${
-        allFavorite
-          ? 'Quitar la selección de favoritos'
-          : 'Añadir la selección a favoritos'
+        allFavorite ? "Quitar la selección de favoritos" : "Añadir la selección a favoritos"
       }">
         <svg class="icon" aria-hidden="true"><use href="#icon-heart"></use></svg>
-        ${allFavorite ? 'Quitar favorito' : 'Favorito'}
+        ${allFavorite ? "Quitar favorito" : "Favorito"}
       </button>
       <button class="bulk__btn bulk__btn--danger" type="button" data-action="bulk-delete" data-focus-key="bulk-delete" data-tooltip="Eliminar las imágenes seleccionadas">
         <svg class="icon" aria-hidden="true"><use href="#icon-trash"></use></svg>
@@ -38,5 +36,5 @@ export function renderBulkBar(root) {
         Quitar selección
       </button>
     </section>
-  `
+  `;
 }

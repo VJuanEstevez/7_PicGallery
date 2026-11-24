@@ -1,46 +1,44 @@
-import { addImages, clearFilters, getState, setFolder, setSort } from './store.js'
-import { formatFromFile, inspectFile } from './metadata.js'
-import { saveUpload } from './db.js'
-import { escapeHtml, titleFromFilename, uid } from './utils.js'
-import { toast } from './toast.js'
+import { addImages, clearFilters, getState, setFolder, setSort } from "./store.js";
+import { formatFromFile, inspectFile } from "./metadata.js";
+import { saveUpload } from "./db.js";
+import { escapeHtml, titleFromFilename, uid } from "./utils.js";
+import { toast } from "./toast.js";
 
-const MAX_SIZE = 25 * 1024 * 1024
+const MAX_SIZE = 25 * 1024 * 1024;
 
-let dialog = null
-let fileInput = null
-let processing = false
-let dragDepth = 0
+let dialog = null;
+let fileInput = null;
+let processing = false;
+let dragDepth = 0;
 
 function getDialog() {
-  if (!dialog) dialog = document.getElementById('upload-dialog')
-  return dialog
+  if (!dialog) dialog = document.getElementById("upload-dialog");
+  return dialog;
 }
 
 function defaultFolder() {
-  const state = getState()
-  const isUserFolder = state.folders.some(
-    (folder) => folder.id === state.activeFolder
-  )
-  return isUserFolder ? state.activeFolder : 'inbox'
+  const state = getState();
+  const isUserFolder = state.folders.some((folder) => folder.id === state.activeFolder);
+  return isUserFolder ? state.activeFolder : "inbox";
 }
 
 function selectedFolder() {
-  return dialog?.querySelector('#upload-folder')?.value || defaultFolder()
+  return dialog?.querySelector("#upload-folder")?.value || defaultFolder();
 }
 
 function renderUploadDialog() {
-  const state = getState()
-  const target = defaultFolder()
+  const state = getState();
+  const target = defaultFolder();
 
   const options = state.folders
     .map(
       (folder) => `
-        <option value="${escapeHtml(folder.id)}" ${folder.id === target ? 'selected' : ''}>
+        <option value="${escapeHtml(folder.id)}" ${folder.id === target ? "selected" : ""}>
           ${escapeHtml(folder.name)}
         </option>
       `
     )
-    .join('')
+    .join("");
 
   dialog.innerHTML = `
     <form class="dialog__form" id="upload-form">
@@ -112,74 +110,74 @@ function renderUploadDialog() {
         </button>
       </footer>
     </form>
-  `
+  `;
 
-  fileInput = dialog.querySelector('#upload-file-input')
-  const dropzone = dialog.querySelector('#upload-dropzone')
+  fileInput = dialog.querySelector("#upload-file-input");
+  const dropzone = dialog.querySelector("#upload-dropzone");
 
-  dropzone.addEventListener('dragover', (event) => {
-    event.preventDefault()
-    event.stopPropagation()
-    dropzone.classList.add('is-dragover')
-  })
+  dropzone.addEventListener("dragover", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    dropzone.classList.add("is-dragover");
+  });
 
-  dropzone.addEventListener('dragleave', () => {
-    dropzone.classList.remove('is-dragover')
-  })
+  dropzone.addEventListener("dragleave", () => {
+    dropzone.classList.remove("is-dragover");
+  });
 
-  dropzone.addEventListener('drop', (event) => {
-    event.preventDefault()
-    event.stopPropagation()
-    dropzone.classList.remove('is-dragover')
-    dragDepth = 0
+  dropzone.addEventListener("drop", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    dropzone.classList.remove("is-dragover");
+    dragDepth = 0;
 
-    const overlay = document.getElementById('drop-overlay')
-    if (overlay) overlay.hidden = true
+    const overlay = document.getElementById("drop-overlay");
+    if (overlay) overlay.hidden = true;
 
-    const files = [...event.dataTransfer.files]
-    if (files.length > 0) processFiles(files, selectedFolder())
-  })
+    const files = [...event.dataTransfer.files];
+    if (files.length > 0) processFiles(files, selectedFolder());
+  });
 
-  fileInput.addEventListener('change', () => {
-    const files = [...fileInput.files]
-    if (files.length > 0) processFiles(files, selectedFolder())
-    fileInput.value = ''
-  })
+  fileInput.addEventListener("change", () => {
+    const files = [...fileInput.files];
+    if (files.length > 0) processFiles(files, selectedFolder());
+    fileInput.value = "";
+  });
 }
 
 async function processFiles(files, folderId) {
-  if (processing) return
-  processing = true
+  if (processing) return;
+  processing = true;
 
-  const added = []
-  const errors = []
+  const added = [];
+  const errors = [];
 
   for (const file of files) {
     if (file.size > MAX_SIZE) {
-      errors.push(`${file.name}: supera el límite de 25 MB.`)
-      continue
+      errors.push(`${file.name}: supera el límite de 25 MB.`);
+      continue;
     }
 
-    const format = formatFromFile(file)
+    const format = formatFromFile(file);
 
     if (!format) {
-      errors.push(`${file.name}: formato no compatible.`)
-      continue
+      errors.push(`${file.name}: formato no compatible.`);
+      continue;
     }
 
-    if (format === 'RAW') {
-      errors.push(`${file.name}: los RAW necesitan un proxy JPG.`)
-      continue
+    if (format === "RAW") {
+      errors.push(`${file.name}: los RAW necesitan un proxy JPG.`);
+      continue;
     }
 
     try {
-      const info = await inspectFile(file)
-      const id = uid()
-      const src = URL.createObjectURL(file)
+      const info = await inspectFile(file);
+      const id = uid();
+      const src = URL.createObjectURL(file);
       const image = {
         id,
         title: titleFromFilename(file.name),
-        description: '',
+        description: "",
         src,
         format: info.format,
         width: info.width,
@@ -188,76 +186,76 @@ async function processFiles(files, folderId) {
         folderId,
         favorite: false,
         createdAt: new Date().toISOString(),
-        origin: 'upload',
-        palette: info.palette
-      }
+        origin: "upload",
+        palette: info.palette,
+      };
 
-      const { src: _src, ...meta } = image
-      await saveUpload({ id, blob: file, meta }).catch(() => null)
-      added.push(image)
+      const { src: _src, ...meta } = image;
+      await saveUpload({ id, blob: file, meta }).catch(() => null);
+      added.push(image);
     } catch (error) {
-      errors.push(error.message || `${file.name}: no se pudo procesar.`)
+      errors.push(error.message || `${file.name}: no se pudo procesar.`);
     }
   }
 
-  processing = false
+  processing = false;
 
   if (added.length > 0) {
-    addImages(added)
-    clearFilters()
-    setFolder(folderId)
-    setSort('recent')
+    addImages(added);
+    clearFilters();
+    setFolder(folderId);
+    setSort("recent");
 
-    const element = getDialog()
-    if (element.open) element.close()
+    const element = getDialog();
+    if (element.open) element.close();
 
-    toast(added.length === 1 ? 'Imagen añadida' : `${added.length} imágenes añadidas`)
+    toast(added.length === 1 ? "Imagen añadida" : `${added.length} imágenes añadidas`);
   }
 
   if (errors.length > 0) {
-    toast(errors[0], { type: 'error', icon: 'info' })
+    toast(errors[0], { type: "error", icon: "info" });
   }
 }
 
 export function initUpload() {
-  dialog = document.getElementById('upload-dialog')
-  const overlay = document.getElementById('drop-overlay')
+  dialog = document.getElementById("upload-dialog");
+  const overlay = document.getElementById("drop-overlay");
 
-  window.addEventListener('dragenter', (event) => {
-    if (!event.dataTransfer?.types.includes('Files')) return
-    event.preventDefault()
-    dragDepth += 1
-    if (overlay) overlay.hidden = false
-  })
+  window.addEventListener("dragenter", (event) => {
+    if (!event.dataTransfer?.types.includes("Files")) return;
+    event.preventDefault();
+    dragDepth += 1;
+    if (overlay) overlay.hidden = false;
+  });
 
-  window.addEventListener('dragover', (event) => {
-    if (!event.dataTransfer?.types.includes('Files')) return
-    event.preventDefault()
-  })
+  window.addEventListener("dragover", (event) => {
+    if (!event.dataTransfer?.types.includes("Files")) return;
+    event.preventDefault();
+  });
 
-  window.addEventListener('dragleave', (event) => {
-    if (!event.dataTransfer?.types.includes('Files')) return
-    dragDepth = Math.max(0, dragDepth - 1)
-    if (dragDepth === 0 && overlay) overlay.hidden = true
-  })
+  window.addEventListener("dragleave", (event) => {
+    if (!event.dataTransfer?.types.includes("Files")) return;
+    dragDepth = Math.max(0, dragDepth - 1);
+    if (dragDepth === 0 && overlay) overlay.hidden = true;
+  });
 
-  window.addEventListener('drop', (event) => {
-    if (!event.dataTransfer?.files?.length) return
-    event.preventDefault()
-    dragDepth = 0
-    if (overlay) overlay.hidden = true
+  window.addEventListener("drop", (event) => {
+    if (!event.dataTransfer?.files?.length) return;
+    event.preventDefault();
+    dragDepth = 0;
+    if (overlay) overlay.hidden = true;
 
-    const files = [...event.dataTransfer.files]
-    if (files.length > 0) processFiles(files, defaultFolder())
-  })
+    const files = [...event.dataTransfer.files];
+    if (files.length > 0) processFiles(files, defaultFolder());
+  });
 }
 
 export function openUploadDialog() {
-  renderUploadDialog()
-  const element = getDialog()
-  if (!element.open) element.showModal()
+  renderUploadDialog();
+  const element = getDialog();
+  if (!element.open) element.showModal();
 }
 
 export function pickFiles() {
-  fileInput?.click()
+  fileInput?.click();
 }

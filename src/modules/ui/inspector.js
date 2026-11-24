@@ -1,16 +1,11 @@
-import {
-  getActiveImage,
-  getFolder,
-  getFolderTitle,
-  getState
-} from '../store.js'
-import { escapeHtml, formatBytes, formatDate } from '../utils.js'
+import { getActiveImage, getFolder, getFolderTitle, getState } from "../store.js";
+import { escapeHtml, formatBytes, formatDate } from "../utils.js";
 
-let dataSectionOpen = true
+let dataSectionOpen = true;
 
 function paletteTemplate(image) {
   if (!Array.isArray(image.palette) || image.palette.length === 0) {
-    return `<p class="palette__empty">Extrayendo la paleta de la imagen…</p>`
+    return `<p class="palette__empty">Extrayendo la paleta de la imagen…</p>`;
   }
 
   return `
@@ -32,17 +27,17 @@ function paletteTemplate(image) {
             </button>
           `
         )
-        .join('')}
+        .join("")}
     </div>
-  `
+  `;
 }
 
 export function renderInspector(root) {
-  const previousSection = root.querySelector('.inspector__data')
-  if (previousSection) dataSectionOpen = previousSection.open
+  const previousSection = root.querySelector(".inspector__data");
+  if (previousSection) dataSectionOpen = previousSection.open;
 
-  const state = getState()
-  const image = getActiveImage(state)
+  const state = getState();
+  const image = getActiveImage(state);
 
   if (!image) {
     root.innerHTML = `
@@ -63,20 +58,20 @@ export function renderInspector(root) {
         <strong>Selecciona una imagen</strong>
         <p>Haz clic en una tarjeta para ver sus datos técnicos y su paleta de color.</p>
       </div>
-    `
-    return
+    `;
+    return;
   }
 
-  const folder = getFolder(image.folderId)
-  const folderName = getFolderTitle(image.folderId)
-  const folderColor = folder?.color ?? '#8c8a85'
-  const formatNote = image.format === 'RAW' ? 'Vista previa JPG' : ''
-  const favorite = Boolean(image.favorite)
-  const title = escapeHtml(image.title)
+  const folder = getFolder(image.folderId);
+  const folderName = getFolderTitle(image.folderId);
+  const folderColor = folder?.color ?? "#8c8a85";
+  const formatNote = image.format === "RAW" ? "Vista previa JPG" : "";
+  const favorite = Boolean(image.favorite);
+  const title = escapeHtml(image.title);
 
-  const spine = (image.palette ?? ['#d7d3ca'])
+  const spine = (image.palette ?? ["#d7d3ca"])
     .map((hex) => `<span style="--swatch: ${escapeHtml(hex)}"></span>`)
-    .join('')
+    .join("");
 
   root.innerHTML = `
     <div class="inspector__head">
@@ -105,16 +100,14 @@ export function renderInspector(root) {
         <img src="${escapeHtml(image.src)}" alt="${title}" />
       </button>
       <button
-        class="inspector__fav${favorite ? ' is-fav' : ''}"
+        class="inspector__fav${favorite ? " is-fav" : ""}"
         type="button"
         data-action="favorite"
         data-id="${escapeHtml(image.id)}"
         data-focus-key="inspector-fav"
         aria-pressed="${favorite}"
         aria-label="${favorite ? `Quitar ${title} de favoritos` : `Añadir ${title} a favoritos`}"
-        data-tooltip="${
-          favorite ? 'Quitar de favoritos' : 'Añadir a favoritos'
-        }"
+        data-tooltip="${favorite ? "Quitar de favoritos" : "Añadir a favoritos"}"
       >
         <svg class="icon" aria-hidden="true"><use href="#icon-heart"></use></svg>
       </button>
@@ -128,9 +121,9 @@ export function renderInspector(root) {
     ${
       image.tags?.length
         ? `<ul class="tag-chips" aria-label="Etiquetas de la imagen">
-            ${image.tags.map((tag) => `<li>${escapeHtml(tag)}</li>`).join('')}
+            ${image.tags.map((tag) => `<li>${escapeHtml(tag)}</li>`).join("")}
           </ul>`
-        : ''
+        : ""
     }
 
     <div class="inspector__actions">
@@ -186,7 +179,7 @@ export function renderInspector(root) {
       </button>
     </div>
 
-    <details class="inspector__data" ${dataSectionOpen ? 'open' : ''}>
+    <details class="inspector__data" ${dataSectionOpen ? "open" : ""}>
       <summary class="inspector__summary">
         <span>Datos técnicos</span>
         <svg class="icon inspector__chevron" aria-hidden="true">
@@ -204,7 +197,7 @@ export function renderInspector(root) {
         </div>
         <div class="meta-row">
           <dt>Formato</dt>
-          <dd>${escapeHtml(image.format)}${formatNote ? `<small>${formatNote}</small>` : ''}</dd>
+          <dd>${escapeHtml(image.format)}${formatNote ? `<small>${formatNote}</small>` : ""}</dd>
         </div>
         <div class="meta-row">
           <dt>Carpeta</dt>
@@ -223,11 +216,11 @@ export function renderInspector(root) {
         ${
           image.palette
             ? `<button class="text-btn" type="button" data-action="copy-palette" data-id="${escapeHtml(image.id)}" data-tooltip="Copiar todos los colores de la paleta">Copiar paleta</button>`
-            : ''
+            : ""
         }
       </div>
       ${paletteTemplate(image)}
       <p class="palette__hint">Haz clic en un color para copiar su código HEX.</p>
     </section>
-  `
+  `;
 }

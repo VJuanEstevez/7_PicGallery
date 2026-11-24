@@ -3,55 +3,51 @@ import {
   getState,
   getVisibleImages,
   setActiveImage,
-  toggleFavorite
-} from './store.js'
-import {
-  escapeHtml,
-  formatBytes,
-  formatCounter
-} from './utils.js'
-import { toast } from './toast.js'
+  toggleFavorite,
+} from "./store.js";
+import { escapeHtml, formatBytes, formatCounter } from "./utils.js";
+import { toast } from "./toast.js";
 
-let dialog = null
-let list = []
-let index = 0
-let startX = null
+let dialog = null;
+let list = [];
+let index = 0;
+let startX = null;
 
 function getDialog() {
-  if (!dialog) dialog = document.getElementById('lightbox')
-  return dialog
+  if (!dialog) dialog = document.getElementById("lightbox");
+  return dialog;
 }
 
 function currentImage() {
-  const state = getState()
-  return state.images.find((image) => image.id === list[index]) ?? null
+  const state = getState();
+  return state.images.find((image) => image.id === list[index]) ?? null;
 }
 
 function filmstripTemplate(state) {
   return list
     .map((id, position) => {
-      const image = state.images.find((entry) => entry.id === id)
-      if (!image) return ''
+      const image = state.images.find((entry) => entry.id === id);
+      if (!image) return "";
 
       return `
         <button
-          class="lightbox__thumb${position === index ? ' is-active' : ''}"
+          class="lightbox__thumb${position === index ? " is-active" : ""}"
           type="button"
           data-action="lightbox-go"
           data-index="${position}"
           aria-label="Ver ${escapeHtml(image.title)}"
           data-tooltip="${escapeHtml(image.title)}"
-          ${position === index ? 'aria-current="true"' : ''}
+          ${position === index ? 'aria-current="true"' : ""}
         >
           <img src="${escapeHtml(image.src)}" alt="" loading="lazy" />
         </button>
-      `
+      `;
     })
-    .join('')
+    .join("");
 }
 
 function buildSkeleton(state) {
-  const element = getDialog()
+  const element = getDialog();
 
   element.innerHTML = `
     <div class="lightbox__inner">
@@ -144,82 +140,82 @@ function buildSkeleton(state) {
         ${filmstripTemplate(state)}
       </div>
     </div>
-  `
+  `;
 
   element.onclick = (event) => {
-    if (event.target === element) element.close()
-  }
+    if (event.target === element) element.close();
+  };
 
   element.onkeydown = (event) => {
-    if (event.key === 'ArrowLeft') {
-      event.preventDefault()
-      go(-1)
-    } else if (event.key === 'ArrowRight') {
-      event.preventDefault()
-      go(1)
+    if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      go(-1);
+    } else if (event.key === "ArrowRight") {
+      event.preventDefault();
+      go(1);
     }
-  }
+  };
 
-  const stage = element.querySelector('#lightbox-stage')
+  const stage = element.querySelector("#lightbox-stage");
 
-  stage.addEventListener('pointerdown', (event) => {
-    if (event.target.closest('button')) return
-    startX = event.clientX
-  })
+  stage.addEventListener("pointerdown", (event) => {
+    if (event.target.closest("button")) return;
+    startX = event.clientX;
+  });
 
-  stage.addEventListener('pointerup', (event) => {
-    if (startX === null) return
-    const distance = event.clientX - startX
-    startX = null
-    if (Math.abs(distance) < 50) return
-    go(distance > 0 ? -1 : 1)
-  })
+  stage.addEventListener("pointerup", (event) => {
+    if (startX === null) return;
+    const distance = event.clientX - startX;
+    startX = null;
+    if (Math.abs(distance) < 50) return;
+    go(distance > 0 ? -1 : 1);
+  });
 
-  stage.addEventListener('pointercancel', () => {
-    startX = null
-  })
+  stage.addEventListener("pointercancel", () => {
+    startX = null;
+  });
 }
 
 function updateLightbox() {
-  const element = getDialog()
-  const state = getState()
-  const image = currentImage()
+  const element = getDialog();
+  const state = getState();
+  const image = currentImage();
 
-  if (!image) return
+  if (!image) return;
 
-  const imageElement = element.querySelector('#lightbox-image')
-  const counter = element.querySelector('#lightbox-counter')
-  const title = element.querySelector('#lightbox-title')
-  const meta = element.querySelector('#lightbox-meta')
-  const palette = element.querySelector('#lightbox-palette')
-  const favorite = element.querySelector('#lightbox-fav')
-  const download = element.querySelector('#lightbox-download')
-  const rename = element.querySelector('#lightbox-rename')
-  const remove = element.querySelector('#lightbox-delete')
-  const filmstrip = element.querySelector('#lightbox-filmstrip')
+  const imageElement = element.querySelector("#lightbox-image");
+  const counter = element.querySelector("#lightbox-counter");
+  const title = element.querySelector("#lightbox-title");
+  const meta = element.querySelector("#lightbox-meta");
+  const palette = element.querySelector("#lightbox-palette");
+  const favorite = element.querySelector("#lightbox-fav");
+  const download = element.querySelector("#lightbox-download");
+  const rename = element.querySelector("#lightbox-rename");
+  const remove = element.querySelector("#lightbox-delete");
+  const filmstrip = element.querySelector("#lightbox-filmstrip");
 
-  counter.textContent = formatCounter(index, list.length)
-  title.textContent = image.title
+  counter.textContent = formatCounter(index, list.length);
+  title.textContent = image.title;
 
-  const sameSource = imageElement.getAttribute('src') === image.src
+  const sameSource = imageElement.getAttribute("src") === image.src;
 
   if (sameSource) {
-    imageElement.classList.remove('is-loading')
+    imageElement.classList.remove("is-loading");
   } else {
-    imageElement.classList.add('is-loading')
-    imageElement.src = image.src
+    imageElement.classList.add("is-loading");
+    imageElement.src = image.src;
   }
 
-  imageElement.onload = () => imageElement.classList.remove('is-loading')
-  imageElement.onerror = () => imageElement.classList.remove('is-loading')
-  imageElement.alt = image.title
+  imageElement.onload = () => imageElement.classList.remove("is-loading");
+  imageElement.onerror = () => imageElement.classList.remove("is-loading");
+  imageElement.alt = image.title;
 
   meta.innerHTML = `
     <span>${image.width} × ${image.height} px</span>
     <span>${formatBytes(image.bytes)}</span>
-    <span>${escapeHtml(image.format)}${image.format === 'RAW' ? ' · proxy JPG' : ''}</span>
+    <span>${escapeHtml(image.format)}${image.format === "RAW" ? " · proxy JPG" : ""}</span>
     <span>${escapeHtml(getFolderTitle(image.folderId))}</span>
-  `
+  `;
 
   palette.innerHTML = (image.palette ?? [])
     .map(
@@ -235,139 +231,139 @@ function updateLightbox() {
         ></button>
       `
     )
-    .join('')
+    .join("");
 
-  favorite.classList.toggle('is-fav', Boolean(image.favorite))
-  favorite.setAttribute('aria-pressed', String(Boolean(image.favorite)))
+  favorite.classList.toggle("is-fav", Boolean(image.favorite));
+  favorite.setAttribute("aria-pressed", String(Boolean(image.favorite)));
   favorite.setAttribute(
-    'aria-label',
-    image.favorite ? 'Quitar de favoritos' : 'Añadir a favoritos'
-  )
+    "aria-label",
+    image.favorite ? "Quitar de favoritos" : "Añadir a favoritos"
+  );
   favorite.setAttribute(
-    'data-tooltip',
-    image.favorite ? 'Quitar de favoritos' : 'Añadir a favoritos'
-  )
+    "data-tooltip",
+    image.favorite ? "Quitar de favoritos" : "Añadir a favoritos"
+  );
 
-  download.dataset.id = image.id
-  download.setAttribute('aria-label', `Descargar ${image.title}`)
+  download.dataset.id = image.id;
+  download.setAttribute("aria-label", `Descargar ${image.title}`);
 
   if (rename) {
-    rename.dataset.id = image.id
-    rename.setAttribute('aria-label', `Cambiar el nombre de ${image.title}`)
+    rename.dataset.id = image.id;
+    rename.setAttribute("aria-label", `Cambiar el nombre de ${image.title}`);
   }
 
   if (remove) {
-    remove.dataset.id = image.id
-    remove.setAttribute('aria-label', `Eliminar ${image.title}`)
+    remove.dataset.id = image.id;
+    remove.setAttribute("aria-label", `Eliminar ${image.title}`);
   }
 
   if (filmstrip) {
     filmstrip.querySelectorAll('[data-action="lightbox-go"]').forEach((thumb) => {
-      const active = Number(thumb.dataset.index) === index
-      thumb.classList.toggle('is-active', active)
-      if (active) thumb.setAttribute('aria-current', 'true')
-      else thumb.removeAttribute('aria-current')
-    })
+      const active = Number(thumb.dataset.index) === index;
+      thumb.classList.toggle("is-active", active);
+      if (active) thumb.setAttribute("aria-current", "true");
+      else thumb.removeAttribute("aria-current");
+    });
 
     filmstrip
-      .querySelector('.lightbox__thumb.is-active')
-      ?.scrollIntoView({ block: 'nearest', inline: 'center' })
+      .querySelector(".lightbox__thumb.is-active")
+      ?.scrollIntoView({ block: "nearest", inline: "center" });
   }
 
-  const stateIndex = state.images.findIndex((entry) => entry.id === image.id)
+  const stateIndex = state.images.findIndex((entry) => entry.id === image.id);
   const neighbors = [
     list[(index + 1) % list.length],
-    list[(index - 1 + list.length) % list.length]
-  ]
+    list[(index - 1 + list.length) % list.length],
+  ];
 
   for (const id of neighbors) {
-    const neighbor = state.images.find((entry) => entry.id === id)
+    const neighbor = state.images.find((entry) => entry.id === id);
     if (neighbor) {
-      const preload = new Image()
-      preload.src = neighbor.src
+      const preload = new Image();
+      preload.src = neighbor.src;
     }
   }
 
-  if (stateIndex === -1) return
+  if (stateIndex === -1) return;
 }
 
 function go(delta) {
-  if (list.length === 0) return
-  index = (index + delta + list.length) % list.length
-  const id = list[index]
-  updateLightbox()
-  setActiveImage(id)
+  if (list.length === 0) return;
+  index = (index + delta + list.length) % list.length;
+  const id = list[index];
+  updateLightbox();
+  setActiveImage(id);
 }
 
 function goTo(position) {
-  if (position < 0 || position >= list.length) return
-  index = position
-  const id = list[index]
-  updateLightbox()
-  setActiveImage(id)
+  if (position < 0 || position >= list.length) return;
+  index = position;
+  const id = list[index];
+  updateLightbox();
+  setActiveImage(id);
 }
 
 export function openLightbox(id) {
-  const state = getState()
-  const visible = getVisibleImages(state)
-  let images = visible.length > 0 ? visible : state.images
-  let position = images.findIndex((image) => image.id === id)
+  const state = getState();
+  const visible = getVisibleImages(state);
+  let images = visible.length > 0 ? visible : state.images;
+  let position = images.findIndex((image) => image.id === id);
 
   if (position === -1) {
-    images = state.images
-    position = images.findIndex((image) => image.id === id)
+    images = state.images;
+    position = images.findIndex((image) => image.id === id);
   }
 
-  if (position === -1) return
+  if (position === -1) return;
 
-  list = images.map((image) => image.id)
-  index = position
+  list = images.map((image) => image.id);
+  index = position;
 
-  const element = getDialog()
-  buildSkeleton(state)
+  const element = getDialog();
+  buildSkeleton(state);
 
-  if (!element.open) element.showModal()
+  if (!element.open) element.showModal();
 
-  updateLightbox()
-  setActiveImage(id)
-  element.querySelector('[data-action="lightbox-close"]')?.focus()
+  updateLightbox();
+  setActiveImage(id);
+  element.querySelector('[data-action="lightbox-close"]')?.focus();
 }
 
 export function closeLightbox() {
-  const element = getDialog()
-  if (element?.open) element.close()
+  const element = getDialog();
+  if (element?.open) element.close();
 }
 
 export function isLightboxOpen() {
-  return Boolean(getDialog()?.open)
+  return Boolean(getDialog()?.open);
 }
 
 export function syncLightbox() {
-  if (!isLightboxOpen()) return
-  const element = getDialog()
-  const image = currentImage()
-  if (!element || !image) return
+  if (!isLightboxOpen()) return;
+  const element = getDialog();
+  const image = currentImage();
+  if (!element || !image) return;
 
-  const title = element.querySelector('#lightbox-title')
-  if (title) title.textContent = image.title
+  const title = element.querySelector("#lightbox-title");
+  if (title) title.textContent = image.title;
 
-  const picture = element.querySelector('#lightbox-image')
-  if (picture) picture.alt = image.title
+  const picture = element.querySelector("#lightbox-image");
+  if (picture) picture.alt = image.title;
 
-  const favorite = element.querySelector('#lightbox-fav')
-  favorite?.classList.toggle('is-fav', Boolean(image.favorite))
-  favorite?.setAttribute('aria-pressed', String(Boolean(image.favorite)))
+  const favorite = element.querySelector("#lightbox-fav");
+  favorite?.classList.toggle("is-fav", Boolean(image.favorite));
+  favorite?.setAttribute("aria-pressed", String(Boolean(image.favorite)));
 
-  const download = element.querySelector('#lightbox-download')
-  download?.setAttribute('aria-label', `Descargar ${image.title}`)
+  const download = element.querySelector("#lightbox-download");
+  download?.setAttribute("aria-label", `Descargar ${image.title}`);
 
-  const rename = element.querySelector('#lightbox-rename')
-  rename?.setAttribute('aria-label', `Cambiar el nombre de ${image.title}`)
+  const rename = element.querySelector("#lightbox-rename");
+  rename?.setAttribute("aria-label", `Cambiar el nombre de ${image.title}`);
 
-  const remove = element.querySelector('#lightbox-delete')
-  remove?.setAttribute('aria-label', `Eliminar ${image.title}`)
+  const remove = element.querySelector("#lightbox-delete");
+  remove?.setAttribute("aria-label", `Eliminar ${image.title}`);
 
-  const palette = element.querySelector('#lightbox-palette')
+  const palette = element.querySelector("#lightbox-palette");
   if (palette) {
     palette.innerHTML = (image.palette ?? [])
       .map(
@@ -383,23 +379,23 @@ export function syncLightbox() {
           ></button>
         `
       )
-      .join('')
+      .join("");
   }
 }
 
 export function handleLightboxFavorite() {
-  const image = currentImage()
-  if (!image) return
+  const image = currentImage();
+  if (!image) return;
 
-  const favorite = toggleFavorite(image.id)
-  syncLightbox()
-  toast(favorite ? 'Añadida a favoritos' : 'Quitada de favoritos')
+  const favorite = toggleFavorite(image.id);
+  syncLightbox();
+  toast(favorite ? "Añadida a favoritos" : "Quitada de favoritos");
 }
 
 export function navigateLightbox(delta) {
-  go(delta)
+  go(delta);
 }
 
 export function goToLightbox(position) {
-  goTo(position)
+  goTo(position);
 }
