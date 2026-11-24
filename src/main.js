@@ -61,6 +61,9 @@ import { copyText, downloadImage } from './modules/utils.js'
 import { confirmAction } from './modules/confirm.js'
 import { initSettings, openSettingsDialog } from './modules/settings.js'
 import { downloadCollection } from './modules/export-collection.js'
+import { initPdfExportDialog } from './modules/ui/pdf-export-dialog.js'
+import { initVideoExportDialog } from './modules/ui/video-export-dialog.js'
+import { initPwa } from './modules/pwa.js'
 
 const app = document.getElementById('app')
 const sidebar = document.getElementById('sidebar')
@@ -671,7 +674,9 @@ function setupListeners() {
     'rename-dialog',
     'upload-dialog',
     'confirm-dialog',
-    'settings-dialog'
+    'settings-dialog',
+    'pdf-export-dialog',
+    'video-export-dialog'
   ]) {
     const dialog = document.getElementById(id)
     dialog?.addEventListener('click', (event) => {
@@ -721,6 +726,9 @@ async function boot() {
   initDragDrop()
   initUpload()
   initSettings()
+  initPdfExportDialog()
+  initVideoExportDialog()
+  initPwa()
   setupListeners()
 
   try {

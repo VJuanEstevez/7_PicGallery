@@ -18,8 +18,6 @@ function cardTemplate(image, index, state) {
   const favorite = Boolean(image.favorite)
   const title = escapeHtml(image.title)
   const format = escapeHtml(image.format)
-  const formatTitle =
-    image.format === 'RAW' ? 'RAW · vista previa JPG' : image.format
   const isList = state.view.layout === 'list'
   const folderName = escapeHtml(getFolderTitle(image.folderId))
   const tags = (image.tags ?? [])
@@ -141,9 +139,17 @@ function cardTemplate(image, index, state) {
           <svg class="icon" aria-hidden="true"><use href="#icon-trash"></use></svg>
         </button>
 
-        <span class="format-badge" data-format="${format}" title="${formatTitle}">
-          ${format}
-        </span>
+        <button
+          class="card__download"
+          type="button"
+          data-action="download"
+          data-id="${escapeHtml(image.id)}"
+          data-focus-key="download-${escapeHtml(image.id)}"
+          aria-label="Descargar ${title}"
+        >
+          <svg class="icon" aria-hidden="true"><use href="#icon-download"></use></svg>
+        </button>
+
       </div>
 
       <div class="card__meta">

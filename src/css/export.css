@@ -1,0 +1,195 @@
+/* ---------- Export section in the sidebar ---------- */
+.export-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.export-option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: #b9bcc2;
+  font-size: 0.82rem;
+  font-weight: 500;
+  text-align: left;
+  transition:
+    background var(--speed) var(--ease),
+    color var(--speed) var(--ease),
+    border-color var(--speed) var(--ease);
+  .icon {
+    flex: none;
+    width: 1.05rem;
+    height: 1.05rem;
+    color: #7d8188;
+    transition: color var(--speed) var(--ease);
+  }
+  .export-option__hint {
+    flex: none;
+    font-size: 0.6rem;
+    color: #7d8188;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+  &:hover {
+    background: rgb(255 255 255 / 0.045);
+    color: #f4f2ed;
+    .icon {
+      color: #d8d9dc;
+    }
+  }
+  &:focus-visible {
+    outline: 2px solid var(--klein);
+    outline-offset: 2px;
+  }
+}
+.export-menu__note {
+  margin-top: 0.6rem;
+  font-size: 0.62rem;
+  line-height: 1.5;
+  color: #80848b;
+}
+/* ---------- Export dialogs ---------- */
+.export-summary {
+  margin-bottom: 1rem;
+  font-size: 0.75rem;
+  color: var(--text-soft);
+}
+.export-field {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  legend {
+    margin-bottom: 0.55rem;
+    padding: 0;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+  & + & {
+    margin-top: 1.15rem;
+  }
+}
+.export-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.export-choice {
+  position: relative;
+  display: inline-flex;
+  input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+  }
+  span {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.42rem 0.75rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-pill);
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--text-soft);
+    cursor: pointer;
+    transition:
+      background var(--speed) var(--ease),
+      border-color var(--speed) var(--ease),
+      color var(--speed) var(--ease);
+  }
+  input:checked + span {
+    border-color: var(--klein);
+    background: var(--klein-soft);
+    color: var(--klein-deep);
+  }
+  input:focus-visible + span {
+    outline: 2px solid var(--klein);
+    outline-offset: 2px;
+  }
+}
+.export-note {
+  margin-top: 0.8rem;
+  font-size: 0.66rem;
+  line-height: 1.55;
+  color: var(--text-faint);
+}
+.export-range {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 0.74rem;
+  font-weight: 600;
+  output {
+    font-family: var(--font-mono);
+    font-weight: 500;
+    color: var(--klein-deep);
+  }
+}
+.export-range + input[type="range"] {
+  width: 100%;
+  margin-top: 0.65rem;
+  accent-color: var(--klein);
+}
+.export-select {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-size: 0.74rem;
+  font-weight: 600;
+  select {
+    width: 100%;
+    padding: 0.5rem 0.6rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm);
+    background: var(--white);
+    color: var(--text);
+    font: inherit;
+    font-weight: 500;
+  }
+}
+.export-toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin-top: 1.15rem;
+  cursor: pointer;
+  input {
+    flex: none;
+    margin-top: 0.2rem;
+    accent-color: var(--klein);
+  }
+  strong {
+    display: block;
+    font-size: 0.74rem;
+  }
+  small {
+    display: block;
+    margin-top: 0.15rem;
+    font-size: 0.65rem;
+    line-height: 1.45;
+    color: var(--text-soft);
+  }
+}
+.export-progress {
+  width: 100%;
+  height: 0.5rem;
+  margin-top: 1.1rem;
+  accent-color: var(--klein);
+}
+@media (max-width: 480px) {
+  .export-options {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    .export-choice span {
+      justify-content: center;
+    }
+  }
+}

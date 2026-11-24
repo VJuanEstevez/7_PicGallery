@@ -1,0 +1,36 @@
+.install-app {
+  position: fixed;
+  right: 1.5rem;
+  bottom: 1.5rem;
+  z-index: 60;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.55rem 0.9rem;
+  border: 1px solid var(--ink-line);
+  border-radius: var(--radius-pill);
+  background: var(--ink);
+  box-shadow: var(--shadow-md);
+  color: var(--paper);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  .icon {
+    width: 0.9rem;
+    height: 0.9rem;
+    color: #8f98ff;
+  }
+  &:hover,
+  &:focus-visible {
+    background: #24272c;
+  }
+  &[hidden] {
+    display: none;
+  }
+}
+@media (max-width: 640px) {
+  .install-app {
+    right: 1rem;
+    bottom: 4.75rem;
+  }
+}

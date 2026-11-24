@@ -364,6 +364,42 @@
     opacity: 1;
     transform: none;
   }
+  .card__download {
+    position: absolute;
+    left: 0.7rem;
+    bottom: 0.7rem;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    width: 1.85rem;
+    height: 1.85rem;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: rgb(247 246 242 / 0.93);
+    color: var(--ink);
+    opacity: 0;
+    transform: translateY(4px);
+    backdrop-filter: blur(6px);
+    transition:
+      opacity var(--speed) var(--ease),
+      transform var(--speed) var(--ease),
+      color var(--speed) var(--ease),
+      background var(--speed) var(--ease);
+    .icon {
+      width: 0.9rem;
+      height: 0.9rem;
+    }
+    &:hover {
+      background: var(--white);
+      color: var(--klein);
+    }
+  }
+  &:hover .card__download,
+  &:focus-within .card__download {
+    opacity: 1;
+    transform: none;
+  }
   .card__zoom {
     position: absolute;
     right: 0.7rem;
@@ -495,7 +531,7 @@
     grid-template-columns: 12rem minmax(0, 1fr);
     gap: 1.25rem;
     align-items: start;
-    padding-bottom: 1.1rem;
+    padding-bottom: 0.8rem;
     border-bottom: 1px solid var(--line);
     .card__meta {
       padding: 0;
@@ -517,6 +553,7 @@
     }
     .card__media {
       width: 100%;
+      aspect-ratio: 16 / 9;
     }
   }
   &.is-selected .card__media {
@@ -551,31 +588,6 @@ body.is-dragging-cards {
   cursor: grabbing;
   user-select: none;
 }
-.format-badge {
-  position: absolute;
-  bottom: 0.7rem;
-  left: 0.95rem;
-  z-index: 2;
-  padding: 0.22rem 0.4rem;
-  border-radius: 0.25rem;
-  background: rgb(14 15 17 / 0.74);
-  color: var(--white);
-  font-family: var(--font-mono);
-  font-size: 0.52rem;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  line-height: 1.2;
-  backdrop-filter: blur(4px);
-  &[data-format="PNG"] {
-    background: rgb(47 125 79 / 0.92);
-  }
-  &[data-format="WEBP"] {
-    background: rgb(27 42 255 / 0.92);
-  }
-  &[data-format="RAW"] {
-    background: rgb(138 95 0 / 0.94);
-  }
-}
 .gallery.is-entering .card {
   animation: cardIn 560ms var(--ease) both;
   animation-delay: calc(var(--i, 0) * 26ms);
@@ -602,10 +614,6 @@ body.is-dragging-cards {
     width: 100%;
     height: 100%;
     object-fit: cover;
-  }
-  .format-badge {
-    bottom: 0.7rem;
-    left: 0.9rem;
   }
 }
 .inspector__spine {

@@ -5,10 +5,12 @@ import {
   getTotalBytes
 } from '../store.js'
 import { escapeHtml, formatBytes, formatNumber } from '../utils.js'
+import { exportSectionTemplate } from './sidebar-export.js'
 
 const sectionState = {
   folders: true,
-  tags: false
+  tags: false,
+  export: false
 }
 
 const sectionTouched = new Set()
@@ -228,18 +230,9 @@ export function renderSidebar(root) {
       </div>
     </details>
 
-    <div class="sidebar__foot">
-      <button
-        class="sidebar__export"
-        type="button"
-        data-action="download-collection"
-        data-focus-key="sidebar-export"
-        data-tooltip="Descargar la carpeta activa en ZIP"
-      >
-        <svg class="icon" aria-hidden="true"><use href="#icon-download"></use></svg>
-        <span>Exportar colección</span>
-      </button>
+    ${exportSectionTemplate(state)}
 
+    <div class="sidebar__foot">
       <button
         class="sidebar__settings"
         type="button"

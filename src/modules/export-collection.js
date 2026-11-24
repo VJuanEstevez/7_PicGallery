@@ -1,50 +1,17 @@
 import { getFolderImages, getFolderTitle, getState } from './store.js'
-import { extensionOf, slugify } from './utils.js'
+import { slugify } from './utils.js'
 import { createZip } from './zip.js'
 import { toast } from './toast.js'
+import {
+  downloadBlob,
+  extensionFor,
+  fetchImageBytes,
+  safeSegment
+} from './export/shared.js'
 
 const MAX_CONCURRENT = 4
 
 let busy = false
-
-function extensionFor(image) {
-  const format = String(image.format ?? '').toUpperCase()
-
-  if (format === 'PNG') return 'png'
-  if (format === 'WEBP') return 'webp'
-  if (format === 'JPEG' || format === 'JPG') return 'jpg'
-
-  return extensionOf(image.src)
-}
-
-function safeSegment(value, fallback) {
-  const clean = String(value)
-    .replace(/[\\/:*?"<>|]+/g, '-')
-    .replace(/\s+/g, ' ')
-    .trim()
-
-  return clean || fallback
-}
-
-async function fetchImage(image) {
-  const response = await fetch(image.src)
-  if (!response.ok) throw new Error(`HTTP ${response.status}`)
-  return new Uint8Array(await response.arrayBuffer())
-}
-
-async function downloadBlob(blob, filename) {
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = filename
-  link.rel = 'noopener'
-
-  document.body.append(link)
-  link.click()
-  link.remove()
-
-  window.setTimeout(() => URL.revokeObjectURL(url), 4000)
-}
 
 /**
  * Download the active folder (or library view) as a ZIP containing a single
@@ -82,7 +49,7 @@ export async function downloadCollection() {
       while (queue.length > 0) {
         const image = queue.shift()
         try {
-          results.push({ image, data: await fetchImage(image) })
+          results.push({ image, data: await fetchImageBytes(image) })
         } catch {
           failed.push(image)
         }

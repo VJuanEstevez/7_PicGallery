@@ -104,9 +104,6 @@ export function renderInspector(root) {
       >
         <img src="${escapeHtml(image.src)}" alt="${title}" />
       </button>
-      <span class="format-badge" data-format="${escapeHtml(image.format)}">
-        ${escapeHtml(image.format)}
-      </span>
       <button
         class="inspector__fav${favorite ? ' is-fav' : ''}"
         type="button"

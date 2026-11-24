@@ -226,7 +226,8 @@
   .card .card__select,
   .card .card__fav,
   .card .card__rename,
-  .card .card__delete {
+  .card .card__delete,
+  .card .card__download {
     opacity: 1;
     transform: none;
   }
